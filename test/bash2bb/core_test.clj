@@ -4,6 +4,8 @@
    [cheshire.core :as json]
    [clojure.test :refer [deftest is]]))
 
+(declare stmt->form)
+
 (defn cmd->form [{type "Type", :as cmd}]
   (case type
     "CallExpr"
@@ -19,7 +21,25 @@
     "BinaryCmd"
     (do
       (assert (= 12 (get cmd "Op")))
-      nil)))
+      (let [x (map (fn [arg]
+                     (-> arg
+                         (get "Parts")
+                         first ;; this is pretty iffy!
+                         (get "Value")))
+                   (-> (get cmd "X")
+                       (get "Cmd")
+                       (get "Args")))
+            y (map (fn [arg]
+                     (-> arg
+                         (get "Parts")
+                         first ;; this is pretty iffy!
+                         (get "Value")))
+                   (-> (get cmd "Y")
+                       (get "Cmd")
+                       (get "Args")))]
+        (list '-> (list 'pipeline
+                        (apply list (into ['pb] x))
+                        (apply list (into ['pb {:out :inherit}] y))))))))
 
 (defn stmt->form [{cmd "Cmd"}]
   (cmd->form cmd))
@@ -47,7 +67,6 @@
           (list 'shell "echo" "two")]
          (ast->forms (bash->ast "echo one\necho two")))))
 
-#_(deftest echo-pipe
-    (clojure.pprint/pprint (bash->ast "echo ab | rev"))
-    (is (= :foo
-           (ast->forms (bash->ast "echo ab | rev")))))
+(deftest echo-pipe
+  (is (= '[(-> (pipeline (pb "echo" "ab") (pb {:out :inherit} "rev")))]
+         (ast->forms (bash->ast "echo ab | rev")))))
