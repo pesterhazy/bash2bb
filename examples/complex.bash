@@ -1,0 +1,1 @@
+echo "$(ssh-keygen -lf - <<<${KEY}|grep -oP '(?<=SHA256:)[^ ]*')="|base64 -d|od -A n -t x1 -v | tr -d ' \n'
