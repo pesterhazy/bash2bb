@@ -50,4 +50,11 @@
 (defn bash->ast [bash]
   (json/parse-string (:out (shell {:in bash :out :string} "shfmt" "--to-json"))))
 
-(defn -main [& args])
+(defn preamble []
+  '[(require '[babashka.process :refer [shell pipeline pb]])])
+
+(defn -main [& args]
+  (doseq [form (preamble)]
+    (prn form))
+  (doseq [form (ast->forms (bash->ast (slurp *in*)))]
+    (prn form)))
