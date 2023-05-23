@@ -3,24 +3,24 @@
    [cheshire.core :as json]
    [clojure.test :refer [deftest is]]))
 
-(defn bla
-  []
-  (let [stmts (-> (slurp "examples/simple.json")
-                  json/parse-string
-                  (get "Stmts"))]
-    (map
-     (fn [v]
-       (apply list
-              (into ['shell]
-                    (map (fn [arg]
-                           (-> arg
-                               (get "Parts")
-                               first ;; this is pretty iffy!
-                               (get "Value")))
-                         (-> v
-                             (get "Cmd")
-                             (get "Args"))))))
-     stmts)))
+(defn stmt->form [stmt]
+  (apply list
+         (into ['shell]
+               (map (fn [arg]
+                      (-> arg
+                          (get "Parts")
+                          first ;; this is pretty iffy!
+                          (get "Value")))
+                    (-> stmt
+                        (get "Cmd")
+                        (get "Args"))))))
 
-(deftest banana
-  (is (= [(list 'shell "echo" "one")] (bla))))
+(defn ast->forms
+  [ast]
+  (map
+   stmt->form
+   (get ast "Stmts")))
+
+(deftest echo-one
+  (is (= [(list 'shell "echo" "one")] (ast->forms (-> (slurp "examples/simple.json")
+                                                      json/parse-string)))))
