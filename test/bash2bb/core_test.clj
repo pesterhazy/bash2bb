@@ -70,3 +70,7 @@
 (deftest echo-pipe
   (is (= '[(-> (pipeline (pb "echo" "ab") (pb {:out :inherit} "rev")))]
          (ast->forms (bash->ast "echo ab | rev")))))
+
+#_(deftest echo-pipe-3
+    (is (= :???
+           (ast->forms (bash->ast "echo ab | cat | rev")))))
