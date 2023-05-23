@@ -17,10 +17,12 @@
 
 (defn ast->forms
   [ast]
-  (map
-   stmt->form
-   (get ast "Stmts")))
+  (map stmt->form (get ast "Stmts")))
+
+(deftest empty-ast
+  (is (= []
+         (ast->forms (-> (slurp "examples/empty.json") json/parse-string)))))
 
 (deftest echo-one
-  (is (= [(list 'shell "echo" "one")] (ast->forms (-> (slurp "examples/simple.json")
-                                                      json/parse-string)))))
+  (is (= [(list 'shell "echo" "one")]
+         (ast->forms (-> (slurp "examples/simple.json") json/parse-string)))))
