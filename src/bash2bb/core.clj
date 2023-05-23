@@ -1,4 +1,7 @@
-(ns bash2bb.core)
+(ns bash2bb.core
+  (:require
+   [babashka.process :refer [shell]]
+   [cheshire.core :as json]))
 
 (declare stmt->form)
 
@@ -43,3 +46,8 @@
 (defn ast->forms
   [ast]
   (map stmt->form (get ast "Stmts")))
+
+(defn bash->ast [bash]
+  (json/parse-string (:out (shell {:in bash :out :string} "shfmt" "--to-json"))))
+
+(defn -main [& args])
