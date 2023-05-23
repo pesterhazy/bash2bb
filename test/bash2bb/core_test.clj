@@ -33,3 +33,8 @@
 (deftest echo-one
   (is (= [(list 'shell "echo" "one")]
          (ast->forms (bash->ast "echo one")))))
+
+(deftest echo-two
+  (is (= [(list 'shell "echo" "one")
+          (list 'shell "echo" "two")]
+         (ast->forms (bash->ast "echo one\necho two")))))
