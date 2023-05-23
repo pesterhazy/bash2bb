@@ -1,5 +1,6 @@
 (ns bash2bb.core-test
   (:require
+   [babashka.process :refer [shell]]
    [cheshire.core :as json]
    [clojure.test :refer [deftest is]]))
 
@@ -19,10 +20,16 @@
   [ast]
   (map stmt->form (get ast "Stmts")))
 
+(defn bash->ast [bash]
+  (json/parse-string (:out (shell {:in bash :out :string} "shfmt" "--to-json"))))
+
+(deftest t-bash->ast
+  (is (= {"Type" "File"} (bash->ast ""))))
+
 (deftest empty-ast
   (is (= []
-         (ast->forms (-> (slurp "examples/empty.json") json/parse-string)))))
+         (ast->forms (bash->ast "")))))
 
 (deftest echo-one
   (is (= [(list 'shell "echo" "one")]
-         (ast->forms (-> (slurp "examples/simple.json") json/parse-string)))))
+         (ast->forms (bash->ast "echo one")))))
