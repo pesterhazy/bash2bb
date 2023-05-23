@@ -1,0 +1,5 @@
+#!/usr/bin/env bb
+
+(require '[babashka.process :refer [shell]])
+
+(shell "watchexec" "-f" "*.clj" "--" "beep-boop" "bb" "test:bb")
