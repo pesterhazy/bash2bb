@@ -6,6 +6,18 @@
 (deftest t-bash->ast
   (is (= {"Type" "File"} (x/bash->ast ""))))
 
+(deftest update-shell-no-change
+  (is (= '(shell "cat") (x/update-shell '(shell "cat") identity))))
+
+(deftest update-shell-add-out
+  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell "cat") assoc :out :string))))
+
+(deftest update-shell-no-change-with-opt
+  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell {:out :string} "cat") identity))))
+
+(deftest update-shell-remove-out
+  (is (= '(shell "cat") (x/update-shell '(shell {:out :string} "cat") dissoc :out))))
+
 (deftest empty-ast
   (is (= []
          (x/ast->forms (x/bash->ast "")))))
@@ -43,14 +55,6 @@
   (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
          (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))
 
-(deftest update-shell-no-change
-  (is (= '(shell "cat") (x/update-shell '(shell "cat") identity))))
-
-(deftest update-shell-add-out
-  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell "cat") assoc :out :string))))
-
-(deftest update-shell-no-change-with-opt
-  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell {:out :string} "cat") identity))))
-
-(deftest update-shell-remove-out
-  (is (= '(shell "cat") (x/update-shell '(shell {:out :string} "cat") dissoc :out))))
+#_(deftest echo-cmd-subst
+    (is (= :???
+           (x/ast->forms (x/bash->ast "echo $(echo a)")))))
