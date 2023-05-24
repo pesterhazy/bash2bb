@@ -54,6 +54,7 @@
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
                    :as stmt}]
+  (assert (<= (count redirs) 2))
   (case type
     "CallExpr"
     (let [; _ (prn (fixup redirs))
