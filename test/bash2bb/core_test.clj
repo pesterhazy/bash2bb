@@ -66,3 +66,6 @@
 (deftest here-string
   (is (= '[(shell {:in "abc"} "cat")]
          (x/ast->forms (x/bash->ast "cat <<< abc")))))
+
+;; throw if parts have the wrong type
+;; ParamExp

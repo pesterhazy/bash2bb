@@ -43,16 +43,15 @@
     (apply list 'str xs)
     (first xs)))
 
-(defn unwrap-arg [arg]
-  (let [parts (-> arg (get "Parts"))]
-    (concat-if-many (map (fn [part]
-                           (case (get part "Type")
-                             ("Lit" "SglQuoted") (get part "Value")
-                             "DblQuoted" (unwrap-arg part)
-                             "CmdSubst"
-                             (let [stmts (-> part (get "Stmts"))]
-                               (list :out (update-shell (stmt->form (only stmts)) assoc :out :string)))
-                             (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts))))
+(defn unwrap-arg [{parts "Parts"}]
+  (concat-if-many (map (fn [part]
+                         (case (get part "Type")
+                           ("Lit" "SglQuoted") (get part "Value")
+                           "DblQuoted" (unwrap-arg part)
+                           "CmdSubst"
+                           (let [stmts (-> part (get "Stmts"))]
+                             (list :out (update-shell (stmt->form (only stmts)) assoc :out :string)))
+                           (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts)))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
