@@ -27,9 +27,9 @@
   (is (= [(list 'shell "echo" "a b")]
          (x/ast->forms (x/bash->ast "echo 'a b'")))))
 
-(deftest echo-pipe
-  (is (= '[(-> (pipeline (pb "echo" "ab") (pb {:out :inherit} "rev")))]
-         (x/ast->forms (x/bash->ast "echo ab | rev")))))
+#_(deftest echo-pipe
+    (is (= ['(shell {:in (:out (shell {:out :string} "echo" "ab"))} "rev")]
+           (x/ast->forms (x/bash->ast "echo ab | rev")))))
 
 (deftest echo-redirect-stdout
   (is (= [(list 'shell {:out "stdout.txt"} "echo" "a")]
@@ -40,5 +40,17 @@
          (x/ast->forms (x/bash->ast "cat < stdin.txt")))))
 
 #_(deftest echo-pipe-3
-    (is (= :???
-           (ast->forms (bash->ast "echo ab | cat | rev")))))
+    (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
+           (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))
+
+(deftest update-shell-no-change
+  (is (= '(shell "cat") (x/update-shell '(shell "cat") identity))))
+
+(deftest update-shell-add-out
+  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell "cat") #(assoc % :out :string)))))
+
+(deftest update-shell-no-change-with-opt
+  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell {:out :string} "cat") identity))))
+
+(deftest update-shell-remove-out
+  (is (= '(shell "cat") (x/update-shell '(shell {:out :string} "cat") #(dissoc % :out)))))

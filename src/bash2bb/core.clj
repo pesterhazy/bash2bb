@@ -51,21 +51,29 @@
     "BinaryCmd"
     (do
       (assert (= 12 (get cmd "Op")))
-      (let [x (map unwrap-arg
-                   (-> (get cmd "X")
-                       (get "Cmd")
-                       (get "Args")))
-            y (map unwrap-arg
-                   (-> (get cmd "Y")
-                       (get "Cmd")
-                       (get "Args")))]
-        (list '-> (list 'pipeline
-                        (apply list (into ['pb] x))
-                        (apply list (into ['pb {:out :inherit}] y))))))))
+      (let [x (get cmd "X")
+            y (get cmd "Y")]
+        (pp [:x x])
+        (pprint (stmt->form x))
+        (pp [:y y])
+        (pprint (stmt->form y))
+        :???))))
 
 (defn ast->forms
   [ast]
   (map stmt->form (get ast "Stmts")))
+
+(defn update-shell [cmd f]
+  (assert (= 'shell (first cmd)))
+  (let [opts (f (if (map? (second cmd)) (second cmd) {}))
+        args (if (map? (second cmd))
+               (drop 2 cmd)
+               (drop 1 cmd))]
+    (if (empty? opts)
+      (apply list 'shell args)
+      (apply list 'shell opts args))))
+
+;; ----------
 
 (defn bash->ast [bash]
   (json/parse-string (:out (shell {:in bash :out :string} "shfmt" "--to-json"))))
