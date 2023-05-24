@@ -5,18 +5,22 @@
 
 (declare stmt->form)
 
-(defn cmd->form [{type "Type", :as cmd}]
+(defn stmt->form [{{type "Type", :as cmd} "Cmd",
+                   redirs "Redirs"
+                   :as stmt}]
   (case type
     "CallExpr"
-    (apply list
-           (into ['shell]
-                 (map (fn [arg]
-                        (-> arg
-                            (get "Parts")
-                            first ;; this is pretty iffy!
-                            (get "Value")))
-                      (-> cmd
-                          (get "Args")))))
+    (do
+      #_(prn redirs)
+      (apply list
+             (into ['shell]
+                   (map (fn [arg]
+                          (-> arg
+                              (get "Parts")
+                              first ;; this is pretty iffy!
+                              (get "Value")))
+                        (-> cmd
+                            (get "Args"))))))
     "BinaryCmd"
     (do
       (assert (= 12 (get cmd "Op")))
@@ -40,9 +44,6 @@
                         (apply list (into ['pb] x))
                         (apply list (into ['pb {:out :inherit}] y))))))))
 
-(defn stmt->form [{cmd "Cmd"}]
-  (cmd->form cmd))
-
 (defn ast->forms
   [ast]
   (map stmt->form (get ast "Stmts")))
@@ -53,7 +54,7 @@
 (defn preamble []
   '[(require '[babashka.process :refer [shell pipeline pb]])])
 
-(defn -main [& args]
+(defn -main [& _args]
   (doseq [form (preamble)]
     (prn form))
   (doseq [form (ast->forms (bash->ast (slurp *in*)))]

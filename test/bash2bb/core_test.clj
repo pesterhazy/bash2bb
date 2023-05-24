@@ -23,6 +23,10 @@
   (is (= '[(-> (pipeline (pb "echo" "ab") (pb {:out :inherit} "rev")))]
          (x/ast->forms (x/bash->ast "echo ab | rev")))))
 
+#_(deftest echo-redirect
+    (is (= [(list 'shell {:out "stdout.txt"} "echo" "one")]
+           (x/ast->forms (x/bash->ast "echo a > stdout.txt")))))
+
 #_(deftest echo-pipe-3
     (is (= :???
            (ast->forms (bash->ast "echo ab | cat | rev")))))
