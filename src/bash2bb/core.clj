@@ -75,13 +75,17 @@
                   {}
                   redirs)]
       (apply list
-             (into (if (empty? opts) '[shell] ['shell opts])
-                   (map unwrap-arg
-                        (-> cmd
-                            (get "Args"))))))
+             'shell
+             (into (if (empty? opts) [] [opts])
+                   (map unwrap-arg (-> cmd (get "Args"))))))
     "BinaryCmd"
-    (do
-      (assert (= 12 (get cmd "Op")))
+    (case (get cmd "Op")
+      10
+      (let [x (get cmd "X")
+            y (get cmd "Y")]
+        (list 'and (list 'zero? (list :exit (update-shell (stmt->form x) assoc :continue true)))
+              (stmt->form y)))
+      12
       (let [x (get cmd "X")
             y (get cmd "Y")]
         (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))))

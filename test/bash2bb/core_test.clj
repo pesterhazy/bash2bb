@@ -67,9 +67,10 @@
   (is (= '[(shell {:in "abc"} "cat")]
          (x/ast->forms (x/bash->ast "cat <<< abc")))))
 
-;; throw if parts have the wrong type
-;; ParamExp
-
 (deftest param-exp
   (is (= '[(shell "echo" (System/getenv "VAR"))]
          (x/ast->forms (x/bash->ast "echo $VAR")))))
+
+(deftest binary-and
+  (is (= '[(and (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
+         (x/ast->forms (x/bash->ast "true && echo a")))))
