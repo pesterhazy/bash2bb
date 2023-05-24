@@ -85,12 +85,28 @@
              (shell "echo" "b"))]
          (x/ast->forms (x/bash->ast "if true; then echo a; else echo b; fi")))))
 
+(deftest conditional-multiple-stmts
+  (is (= '[(if (zero? (:exit (shell {:continue true} "true")))
+             (do
+               (shell "echo" "a")
+               (shell "echo" "b"))
+             (do
+               (shell "echo" "c")
+               (shell "echo" "d")))]
+         (x/ast->forms (x/bash->ast "if true; then echo a; echo b; else echo c; echo d; fi")))))
+
 (deftest conditional-no-else
   (is (= '[(when (zero? (:exit (shell {:continue true} "true")))
              (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "if true; then echo a; fi")))))
 
-;; TODO: if true; then echo a; fi
+(deftest conditional-no-else-multiple-stmts
+  (is (= '[(when (zero? (:exit (shell {:continue true} "true")))
+             (do
+               (shell "echo" "a")
+               (shell "echo" "b")))]
+         (x/ast->forms (x/bash->ast "if true; then echo a; echo b; fi")))))
+
 ;; TODO; multiple statements in then clause
 ;; TODO: else
 ;; TODO: export

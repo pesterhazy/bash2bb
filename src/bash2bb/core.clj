@@ -44,6 +44,11 @@
     (apply list 'str xs)
     (first xs)))
 
+(defn do-if-many [xs]
+  (if (> (count xs) 1)
+    (apply list 'do xs)
+    (first xs)))
+
 (defn unwrap-arg [{parts "Parts"}]
   (concat-if-many (map (fn [part]
                          (case (get part "Type")
@@ -91,10 +96,10 @@
     "IfClause"
     (if (get (get cmd "Else") "Then")
       (list 'if (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
-            (stmt->form (only (get cmd "Then")))
-            (stmt->form (only (get (get cmd "Else") "Then"))))
+            (do-if-many (map stmt->form (get cmd "Then")))
+            (do-if-many (map stmt->form (get (get cmd "Else") "Then"))))
       (list 'when (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
-            (stmt->form (only (get cmd "Then")))))
+            (do-if-many (map stmt->form (get cmd "Then")))))
     (do
       (pp cmd)
       (throw (ex-info (str "Cmd type not implemented: " type) {})))))
