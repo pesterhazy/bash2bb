@@ -32,6 +32,10 @@
       (apply list 'shell args)
       (apply list 'shell opts args))))
 
+(defn only [xs]
+  (assert (= 1 (count xs)))
+  (first xs))
+
 (declare stmt->form)
 
 (defn concat-if-many [xs]
@@ -47,8 +51,7 @@
                              "DblQuoted" (unwrap-arg part)
                              "CmdSubst"
                              (let [stmts (-> part (get "Stmts"))]
-                               (assert (= 1 (count stmts)))
-                               (list :out (update-shell (stmt->form (first stmts)) assoc :out :string)))
+                               (list :out (update-shell (stmt->form (only stmts)) assoc :out :string)))
                              (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts))))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
@@ -62,11 +65,11 @@
           (reduce (fn [opts redir]
                     (case (get redir "Op")
                       54
-                      (assoc opts :out (-> redir (get "Word") (get "Parts") first (get "Value")))
+                      (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
                       56
-                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") first (get "Value"))))
+                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
                       63 ;; here-string
-                      (assoc opts :in (-> redir (get "Word") (get "Parts") first (get "Value")))))
+                      (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
                   {}
                   redirs)]
       (apply list
