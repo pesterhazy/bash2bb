@@ -80,14 +80,20 @@
     "BinaryCmd"
     (let [{op "Op", x "X", y "Y"} cmd]
       (case op
-        10
+        10 ;; &&
         (list 'and (list 'zero? (list :exit (update-shell (stmt->form x) assoc :continue true)))
               (stmt->form y))
-        11
+        11 ;; ||
         (list 'and (list 'pos? (list :exit (update-shell (stmt->form x) assoc :continue true)))
               (stmt->form y))
         12
-        (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))))
+        (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))
+    "IfClause"
+    (list 'and (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
+          (stmt->form (only (get cmd "Then"))))
+    (do
+      (pp cmd)
+      (throw (ex-info (str "Cmd type not implemented: " type) {})))))
 
 (defn ast->forms
   [ast]

@@ -79,6 +79,10 @@
   (is (= '[(and (pos? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "true || echo a")))))
 
+(deftest conditional
+  (is (= '[(and (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
+         (x/ast->forms (x/bash->ast "if true; then echo a; fi")))))
+
 ;; TODO: if true; then echo a; fi
 ;; TODO: else
 ;; TODO: export
