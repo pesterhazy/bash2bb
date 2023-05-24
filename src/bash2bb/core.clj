@@ -28,7 +28,7 @@
   (let [[part :as parts] (-> arg (get "Parts"))]
     (assert (= 1 (count parts)))
     (case (get part "Type")
-      "Lit" (get part "Value")
+      ("Lit" "SglQuoted") (get part "Value")
       "DblQuoted" (unwrap-arg part))))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
