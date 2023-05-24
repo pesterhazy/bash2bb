@@ -62,8 +62,7 @@
   (assert (<= (count redirs) 2))
   (case type
     "CallExpr"
-    (let [; _ (prn (fixup redirs))
-          opts
+    (let [opts
           (reduce (fn [opts redir]
                     (case (get redir "Op")
                       54
@@ -83,6 +82,9 @@
       (case op
         10
         (list 'and (list 'zero? (list :exit (update-shell (stmt->form x) assoc :continue true)))
+              (stmt->form y))
+        11
+        (list 'and (list 'pos? (list :exit (update-shell (stmt->form x) assoc :continue true)))
               (stmt->form y))
         12
         (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))))
