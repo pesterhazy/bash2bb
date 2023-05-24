@@ -64,7 +64,9 @@
                       54
                       (assoc opts :out (-> redir (get "Word") (get "Parts") first (get "Value")))
                       56
-                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") first (get "Value"))))))
+                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") first (get "Value"))))
+                      63 ;; here-string
+                      (assoc opts :in (-> redir (get "Word") (get "Parts") first (get "Value")))))
                   {}
                   redirs)]
       (apply list

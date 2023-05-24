@@ -63,6 +63,6 @@
   (is (= '[(shell "echo" (str (:out (shell {:out :string} "echo" "a")) "="))]
          (x/ast->forms (x/bash->ast "echo \"$(echo a)=\"")))))
 
-#_(deftest here-string
-    (is (= '[(shell {:in "abc"} "cat")]
-           (x/ast->forms (x/bash->ast "cat <<< abc")))))
+(deftest here-string
+  (is (= '[(shell {:in "abc"} "cat")]
+         (x/ast->forms (x/bash->ast "cat <<< abc")))))
