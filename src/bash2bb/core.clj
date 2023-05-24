@@ -89,8 +89,9 @@
         12
         (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))
     "IfClause"
-    (list 'and (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
-          (stmt->form (only (get cmd "Then"))))
+    (list 'if (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
+          (stmt->form (only (get cmd "Then")))
+          (stmt->form (only (get (get cmd "Else") "Then"))))
     (do
       (pp cmd)
       (throw (ex-info (str "Cmd type not implemented: " type) {})))))
