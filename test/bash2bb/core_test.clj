@@ -55,6 +55,6 @@
   (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
          (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))
 
-#_(deftest echo-cmd-subst
-    (is (= :???
-           (x/ast->forms (x/bash->ast "echo $(echo a)")))))
+(deftest echo-cmd-subst
+  (is (= '[(shell "echo" (:out (shell {:out :string} "echo" "a")))]
+         (x/ast->forms (x/bash->ast "echo $(echo a)")))))

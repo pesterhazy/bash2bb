@@ -39,7 +39,12 @@
     (assert (= 1 (count parts)))
     (case (get part "Type")
       ("Lit" "SglQuoted") (get part "Value")
-      "DblQuoted" (unwrap-arg part))))
+      "DblQuoted" (unwrap-arg part)
+      "CmdSubst"
+      (let [stmts (-> part (get "Stmts"))]
+        (assert (= 1 (count stmts)))
+        (list :out (update-shell (stmt->form (first stmts)) assoc :out :string)))
+      (throw (ex-info "Unknown arg type" {:type (get part "Type")})))))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
