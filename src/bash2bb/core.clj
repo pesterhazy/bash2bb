@@ -59,11 +59,14 @@
     "CallExpr"
     (let [; _ (prn (fixup redirs))
           opts
-          (cond-> {}
-            (= 54 (-> redirs first (get "Op")))
-            (assoc :out (-> redirs first (get "Word") (get "Parts") first (get "Value")))
-            (= 56 (-> redirs first (get "Op")))
-            (assoc :in (list 'slurp (-> redirs first (get "Word") (get "Parts") first (get "Value")))))]
+          (reduce (fn [opts redir]
+                    (case (get redir "Op")
+                      54
+                      (assoc opts :out (-> redir (get "Word") (get "Parts") first (get "Value")))
+                      56
+                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") first (get "Value"))))))
+                  {}
+                  redirs)]
       (apply list
              (into (if (empty? opts) '[shell] ['shell opts])
                    (map unwrap-arg
