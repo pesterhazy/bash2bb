@@ -29,7 +29,9 @@
           opts
           (cond-> {}
             (= 54 (-> redirs first (get "Op")))
-            (assoc :out (-> redirs first (get "Word") (get "Parts") first (get "Value"))))]
+            (assoc :out (-> redirs first (get "Word") (get "Parts") first (get "Value")))
+            (= 56 (-> redirs first (get "Op")))
+            (assoc :in (list 'slurp (-> redirs first (get "Word") (get "Parts") first (get "Value")))))]
       (apply list
              (into (if (empty? opts) '[shell] ['shell opts])
                    (map (fn [arg]

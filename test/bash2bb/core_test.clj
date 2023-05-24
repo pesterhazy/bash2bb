@@ -27,9 +27,9 @@
   (is (= [(list 'shell {:out "stdout.txt"} "echo" "a")]
          (x/ast->forms (x/bash->ast "echo a > stdout.txt")))))
 
-#_(deftest echo-redirect-stdin
-    (is (= '[(shell {:in (slurp "stdin.txt")} "cat")]
-           (x/ast->forms (x/bash->ast "cat < stdin.txt")))))
+(deftest echo-redirect-stdin
+  (is (= '[(shell {:in (slurp "stdin.txt")} "cat")]
+         (x/ast->forms (x/bash->ast "cat < stdin.txt")))))
 
 #_(deftest echo-pipe-3
     (is (= :???
