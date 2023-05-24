@@ -22,6 +22,16 @@
   [v]
   (pprint (fixup v)))
 
+(defn update-shell [cmd f & args]
+  (assert (= 'shell (first cmd)))
+  (let [opts (apply f (if (map? (second cmd)) (second cmd) {}) args)
+        args (if (map? (second cmd))
+               (drop 2 cmd)
+               (drop 1 cmd))]
+    (if (empty? opts)
+      (apply list 'shell args)
+      (apply list 'shell opts args))))
+
 (declare stmt->form)
 
 (defn unwrap-arg [arg]
@@ -53,25 +63,11 @@
       (assert (= 12 (get cmd "Op")))
       (let [x (get cmd "X")
             y (get cmd "Y")]
-        (pp [:x x])
-        (pprint (stmt->form x))
-        (pp [:y y])
-        (pprint (stmt->form y))
-        :???))))
+        (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))))
 
 (defn ast->forms
   [ast]
   (map stmt->form (get ast "Stmts")))
-
-(defn update-shell [cmd f & args]
-  (assert (= 'shell (first cmd)))
-  (let [opts (apply f (if (map? (second cmd)) (second cmd) {}) args)
-        args (if (map? (second cmd))
-               (drop 2 cmd)
-               (drop 1 cmd))]
-    (if (empty? opts)
-      (apply list 'shell args)
-      (apply list 'shell opts args))))
 
 ;; ----------
 

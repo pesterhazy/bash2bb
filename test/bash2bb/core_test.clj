@@ -27,9 +27,9 @@
   (is (= [(list 'shell "echo" "a b")]
          (x/ast->forms (x/bash->ast "echo 'a b'")))))
 
-#_(deftest echo-pipeout
-    (is (= ['(shell {:in (:out (shell {:out :string} "echo" "ab"))} "rev")]
-           (x/ast->forms (x/bash->ast "echo ab | rev")))))
+(deftest echo-pipeout
+  (is (= ['(shell {:in (:out (shell {:out :string} "echo" "ab"))} "rev")]
+         (x/ast->forms (x/bash->ast "echo ab | rev")))))
 
 (deftest echo-redirect-stdout
   (is (= [(list 'shell {:out "stdout.txt"} "echo" "a")]
