@@ -58,3 +58,7 @@
 (deftest echo-cmd-subst
   (is (= '[(shell "echo" (:out (shell {:out :string} "echo" "a")))]
          (x/ast->forms (x/bash->ast "echo $(echo a)")))))
+
+(deftest echo-2-parts
+  (is (= '[(shell "echo" (str (:out (shell {:out :string} "echo" "a")) "="))]
+         (x/ast->forms (x/bash->ast "echo \"$(echo a)=\"")))))

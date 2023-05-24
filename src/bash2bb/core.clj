@@ -34,17 +34,22 @@
 
 (declare stmt->form)
 
+(defn concat-if-many [xs]
+  (if (> (count xs) 1)
+    (apply list 'str xs)
+    (first xs)))
+
 (defn unwrap-arg [arg]
-  (let [[part :as parts] (-> arg (get "Parts"))]
-    (assert (= 1 (count parts)))
-    (case (get part "Type")
-      ("Lit" "SglQuoted") (get part "Value")
-      "DblQuoted" (unwrap-arg part)
-      "CmdSubst"
-      (let [stmts (-> part (get "Stmts"))]
-        (assert (= 1 (count stmts)))
-        (list :out (update-shell (stmt->form (first stmts)) assoc :out :string)))
-      (throw (ex-info "Unknown arg type" {:type (get part "Type")})))))
+  (let [parts (-> arg (get "Parts"))]
+    (concat-if-many (map (fn [part]
+                           (case (get part "Type")
+                             ("Lit" "SglQuoted") (get part "Value")
+                             "DblQuoted" (unwrap-arg part)
+                             "CmdSubst"
+                             (let [stmts (-> part (get "Stmts"))]
+                               (assert (= 1 (count stmts)))
+                               (list :out (update-shell (stmt->form (first stmts)) assoc :out :string)))
+                             (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts))))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
@@ -82,8 +87,11 @@
 (defn preamble []
   '[(require '[babashka.process :refer [shell pipeline pb]])])
 
-(defn -main [& _args]
-  (doseq [form (preamble)]
-    (prn form))
-  (doseq [form (ast->forms (bash->ast (slurp *in*)))]
-    (prn form)))
+(defn -main [& args]
+  (if (= "--ast" (first args))
+    (pp (bash->ast (slurp *in*)))
+    (do
+      (doseq [form (preamble)]
+        (prn form))
+      (doseq [form (ast->forms (bash->ast (slurp *in*)))]
+        (prn form)))))
