@@ -25,10 +25,11 @@
                    :as stmt}]
   (case type
     "CallExpr"
-    (let [opts (if redirs
-                 ;; HACKITY HACK
-                 {:out (-> redirs first (get "Word") (get "Parts") first (get "Value"))}
-                 {})]
+    (let [; _ (prn (fixup redirs))
+          opts
+          (cond-> {}
+            (= 54 (-> redirs first (get "Op")))
+            (assoc :out (-> redirs first (get "Word") (get "Parts") first (get "Value"))))]
       (apply list
              (into (if (empty? opts) '[shell] ['shell opts])
                    (map (fn [arg]
