@@ -78,3 +78,8 @@
 (deftest binary-or
   (is (= '[(and (pos? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "true || echo a")))))
+
+;; TODO: if true; then echo a; fi
+;; TODO: else
+;; TODO: export
+;; TODO: [[ "$VAR" == "foo"]]
