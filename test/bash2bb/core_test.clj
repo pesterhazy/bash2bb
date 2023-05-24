@@ -27,7 +27,7 @@
   (is (= [(list 'shell "echo" "a b")]
          (x/ast->forms (x/bash->ast "echo 'a b'")))))
 
-(deftest echo-pipeout
+(deftest echo-pipe
   (is (= ['(shell {:in (:out (shell {:out :string} "echo" "ab"))} "rev")]
          (x/ast->forms (x/bash->ast "echo ab | rev")))))
 
@@ -39,9 +39,9 @@
   (is (= '[(shell {:in (slurp "stdin.txt")} "cat")]
          (x/ast->forms (x/bash->ast "cat < stdin.txt")))))
 
-#_(deftest echo-pipe-3
-    (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
-           (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))
+(deftest echo-pipe-3
+  (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
+         (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))
 
 (deftest update-shell-no-change
   (is (= '(shell "cat") (x/update-shell '(shell "cat") identity))))
