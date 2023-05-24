@@ -18,7 +18,17 @@
                                 (dissoc "ValueEnd"))))
                         v))
 
+(defn pp
+  [v]
+  (pprint (fixup v)))
+
 (declare stmt->form)
+
+(defn unwrap-arg [arg]
+  (-> arg
+      (get "Parts")
+      first ;; this is pretty iffy!
+      (get "Value")))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
@@ -34,29 +44,17 @@
             (assoc :in (list 'slurp (-> redirs first (get "Word") (get "Parts") first (get "Value")))))]
       (apply list
              (into (if (empty? opts) '[shell] ['shell opts])
-                   (map (fn [arg]
-                          (-> arg
-                              (get "Parts")
-                              first ;; this is pretty iffy!
-                              (get "Value")))
+                   (map unwrap-arg
                         (-> cmd
                             (get "Args"))))))
     "BinaryCmd"
     (do
       (assert (= 12 (get cmd "Op")))
-      (let [x (map (fn [arg]
-                     (-> arg
-                         (get "Parts")
-                         first ;; this is pretty iffy!
-                         (get "Value")))
+      (let [x (map unwrap-arg
                    (-> (get cmd "X")
                        (get "Cmd")
                        (get "Args")))
-            y (map (fn [arg]
-                     (-> arg
-                         (get "Parts")
-                         first ;; this is pretty iffy!
-                         (get "Value")))
+            y (map unwrap-arg
                    (-> (get cmd "Y")
                        (get "Cmd")
                        (get "Args")))]
