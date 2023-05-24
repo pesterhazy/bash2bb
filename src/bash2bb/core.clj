@@ -1,7 +1,22 @@
 (ns bash2bb.core
   (:require
+   [clojure.pprint :refer [pprint]]
    [babashka.process :refer [shell]]
    [cheshire.core :as json]))
+
+(defn fixup
+  [v]
+  (clojure.walk/prewalk (fn [v]
+                          (if-not (map? v)
+                            v
+                            (-> v
+                                (dissoc "Position")
+                                (dissoc "Pos")
+                                (dissoc "OpPos")
+                                (dissoc "End")
+                                (dissoc "ValuePos")
+                                (dissoc "ValueEnd"))))
+                        v))
 
 (declare stmt->form)
 
@@ -10,10 +25,12 @@
                    :as stmt}]
   (case type
     "CallExpr"
-    (do
-      #_(prn redirs)
+    (let [opts (if redirs
+                 ;; HACKITY HACK
+                 {:out (-> redirs first (get "Word") (get "Parts") first (get "Value"))}
+                 {})]
       (apply list
-             (into ['shell]
+             (into (if (empty? opts) '[shell] ['shell opts])
                    (map (fn [arg]
                           (-> arg
                               (get "Parts")
