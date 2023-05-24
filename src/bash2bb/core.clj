@@ -79,15 +79,12 @@
              (into (if (empty? opts) [] [opts])
                    (map unwrap-arg (-> cmd (get "Args"))))))
     "BinaryCmd"
-    (case (get cmd "Op")
-      10
-      (let [x (get cmd "X")
-            y (get cmd "Y")]
+    (let [{op "Op", x "X", y "Y"} cmd]
+      (case op
+        10
         (list 'and (list 'zero? (list :exit (update-shell (stmt->form x) assoc :continue true)))
-              (stmt->form y)))
-      12
-      (let [x (get cmd "X")
-            y (get cmd "Y")]
+              (stmt->form y))
+        12
         (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))))
 
 (defn ast->forms
