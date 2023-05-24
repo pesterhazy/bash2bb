@@ -85,6 +85,11 @@
              (shell "echo" "b"))]
          (x/ast->forms (x/bash->ast "if true; then echo a; else echo b; fi")))))
 
+(deftest conditional-no-else
+  (is (= '[(when (zero? (:exit (shell {:continue true} "true")))
+             (shell "echo" "a"))]
+         (x/ast->forms (x/bash->ast "if true; then echo a; fi")))))
+
 ;; TODO: if true; then echo a; fi
 ;; TODO; multiple statements in then clause
 ;; TODO: else
