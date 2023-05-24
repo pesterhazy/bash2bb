@@ -27,7 +27,7 @@
   (is (= [(list 'shell "echo" "a b")]
          (x/ast->forms (x/bash->ast "echo 'a b'")))))
 
-#_(deftest echo-pipe
+#_(deftest echo-pipeout
     (is (= ['(shell {:in (:out (shell {:out :string} "echo" "ab"))} "rev")]
            (x/ast->forms (x/bash->ast "echo ab | rev")))))
 
@@ -47,10 +47,10 @@
   (is (= '(shell "cat") (x/update-shell '(shell "cat") identity))))
 
 (deftest update-shell-add-out
-  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell "cat") #(assoc % :out :string)))))
+  (is (= '(shell {:out :string} "cat") (x/update-shell '(shell "cat") assoc :out :string))))
 
 (deftest update-shell-no-change-with-opt
   (is (= '(shell {:out :string} "cat") (x/update-shell '(shell {:out :string} "cat") identity))))
 
 (deftest update-shell-remove-out
-  (is (= '(shell "cat") (x/update-shell '(shell {:out :string} "cat") #(dissoc % :out)))))
+  (is (= '(shell "cat") (x/update-shell '(shell {:out :string} "cat") dissoc :out))))
