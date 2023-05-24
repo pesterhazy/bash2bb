@@ -51,6 +51,8 @@
                            "CmdSubst"
                            (let [stmts (-> part (get "Stmts"))]
                              (list :out (update-shell (stmt->form (only stmts)) assoc :out :string)))
+                           "ParamExp"
+                           (list 'System/getenv (-> part (get "Param") (get "Value")))
                            (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts)))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",

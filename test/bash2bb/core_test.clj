@@ -69,3 +69,7 @@
 
 ;; throw if parts have the wrong type
 ;; ParamExp
+
+(deftest param-exp
+  (is (= '[(shell "echo" (System/getenv "VAR"))]
+         (x/ast->forms (x/bash->ast "echo $VAR")))))
