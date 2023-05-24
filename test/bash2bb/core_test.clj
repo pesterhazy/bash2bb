@@ -19,11 +19,9 @@
           (list 'shell "echo" "two")]
          (x/ast->forms (x/bash->ast "echo one\necho two")))))
 
-#_(deftest echo-quotes
-    (x/pp (x/bash->ast "echo \"a b\""))
-
-    (is (= [(list 'shell "echo" "a b")]
-           (x/ast->forms (x/bash->ast "echo \"a b\"")))))
+(deftest echo-quotes
+  (is (= [(list 'shell "echo" "a b")]
+         (x/ast->forms (x/bash->ast "echo \"a b\"")))))
 
 (deftest echo-pipe
   (is (= '[(-> (pipeline (pb "echo" "ab") (pb {:out :inherit} "rev")))]

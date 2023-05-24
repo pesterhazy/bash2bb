@@ -25,10 +25,11 @@
 (declare stmt->form)
 
 (defn unwrap-arg [arg]
-  (-> arg
-      (get "Parts")
-      first ;; this is pretty iffy!
-      (get "Value")))
+  (let [[part :as parts] (-> arg (get "Parts"))]
+    (assert (= 1 (count parts)))
+    (case (get part "Type")
+      "Lit" (get part "Value")
+      "DblQuoted" (unwrap-arg part))))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
