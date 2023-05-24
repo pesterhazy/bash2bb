@@ -1,5 +1,6 @@
 (ns bash2bb.core
   (:require
+   [clojure.walk]
    [clojure.pprint :refer [pprint]]
    [babashka.process :refer [shell]]
    [cheshire.core :as json]))
