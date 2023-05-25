@@ -100,6 +100,13 @@
             (do-if-many (map stmt->form (get (get cmd "Else") "Then"))))
       (list 'when (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
             (do-if-many (map stmt->form (get cmd "Then")))))
+    "TestClause"
+    (let [{{type "Type", op "Op", x "X", y "Y"} "X"} cmd]
+      (case type
+        "BinaryTest"
+        (case op
+          40 ;; ==
+          (list '= (unwrap-arg x) (unwrap-arg y)))))
     (do
       (pp cmd)
       (throw (ex-info (str "Cmd type not implemented: " type) {})))))

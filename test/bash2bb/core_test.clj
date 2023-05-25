@@ -107,7 +107,8 @@
                (shell "echo" "b")))]
          (x/ast->forms (x/bash->ast "if true; then echo a; echo b; fi")))))
 
-;; TODO; multiple statements in then clause
-;; TODO: else
+(deftest conditional-expr
+  (is (= ['(= "x" "x")] (x/ast->forms (x/bash->ast "[[ x == x ]]")))))
+
+;; TODO: for loop
 ;; TODO: export
-;; TODO: [[ "$VAR" == "foo"]]
