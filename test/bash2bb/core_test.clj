@@ -76,7 +76,7 @@
          (x/ast->forms (x/bash->ast "true && echo a")))))
 
 (deftest binary-or
-  (is (= '[(and (pos? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
+  (is (= '[(or (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "true || echo a")))))
 
 (deftest conditional

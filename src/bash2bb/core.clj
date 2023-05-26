@@ -64,53 +64,55 @@
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
                    :as stmt}
-                  {}]
+                  {:keys [context] :or {context :stmt}}]
   (assert (<= (count redirs) 2))
-  (case type
-    "CallExpr"
-    (let [opts
-          (reduce (fn [opts redir]
-                    (case (get redir "Op")
-                      54
-                      (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
-                      56
-                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
-                      63 ;; here-string
-                      (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
-                  {}
-                  redirs)]
-      (apply list
-             'shell
-             (into (if (empty? opts) [] [opts])
-                   (map unwrap-arg (-> cmd (get "Args"))))))
-    "BinaryCmd"
-    (let [{op "Op", x "X", y "Y"} cmd]
-      (case op
-        10 ;; &&
-        (list 'and (list 'zero? (list :exit (update-shell (stmt->form x {}) assoc :continue true)))
-              (stmt->form y {}))
-        11 ;; ||
-        (list 'and (list 'pos? (list :exit (update-shell (stmt->form x {}) assoc :continue true)))
-              (stmt->form y {}))
-        12
-        (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))))
-    "IfClause"
-    (if (get (get cmd "Else") "Then")
-      (list 'if (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond")) {}) assoc :continue true)))
-            (do-if-many (map #(stmt->form % {}) (get cmd "Then")))
-            (do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then"))))
-      (list 'when (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond")) {}) assoc :continue true)))
-            (do-if-many (map #(stmt->form % {}) (get cmd "Then")))))
-    "TestClause"
-    (let [{{type "Type", op "Op", x "X", y "Y"} "X"} cmd]
-      (case type
-        "BinaryTest"
-        (case op
-          40 ;; ==
-          (list '= (unwrap-arg x) (unwrap-arg y)))))
-    (do
-      (pp cmd)
-      (throw (ex-info (str "Cmd type not implemented: " type) {})))))
+  (let [form
+        (case type
+          "CallExpr"
+          (let [opts
+                (reduce (fn [opts redir]
+                          (case (get redir "Op")
+                            54
+                            (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
+                            56
+                            (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                            63 ;; here-string
+                            (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
+                        {}
+                        redirs)]
+            (apply list
+                   'shell
+                   (into (if (empty? opts) [] [opts])
+                         (map unwrap-arg (-> cmd (get "Args"))))))
+          "BinaryCmd"
+          (let [{op "Op", x "X", y "Y"} cmd]
+            (case op
+              10 ;; &&
+              (list 'and (stmt->form x {:context :binary}) (stmt->form y {}))
+              11 ;; ||
+              (list 'or (stmt->form x {:context :binary}) (stmt->form y {}))
+              12
+              (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))))
+          "IfClause"
+          (if (get (get cmd "Else") "Then")
+            (list 'if (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond")) {}) assoc :continue true)))
+                  (do-if-many (map #(stmt->form % {}) (get cmd "Then")))
+                  (do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then"))))
+            (list 'when (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond")) {}) assoc :continue true)))
+                  (do-if-many (map #(stmt->form % {}) (get cmd "Then")))))
+          "TestClause"
+          (let [{{type "Type", op "Op", x "X", y "Y"} "X"} cmd]
+            (case type
+              "BinaryTest"
+              (case op
+                40 ;; ==
+                (list '= (unwrap-arg x) (unwrap-arg y)))))
+          (do
+            (pp cmd)
+            (throw (ex-info (str "Cmd type not implemented: " type) {}))))]
+    (if (= :binary context)
+      (list 'zero? (list :exit (update-shell form assoc :continue true)))
+      form)))
 
 (defn ast->forms
   [ast]
