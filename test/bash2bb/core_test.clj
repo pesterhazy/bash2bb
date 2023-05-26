@@ -110,5 +110,8 @@
 (deftest conditional-expr
   (is (= ['(= "x" "x")] (x/ast->forms (x/bash->ast "[[ x == x ]]")))))
 
+#_(deftest conditional-expr-and
+    (is (= [:???] (x/ast->forms (x/bash->ast "[[ x == x ]] && echo a")))))
+
 ;; TODO: for loop
 ;; TODO: export

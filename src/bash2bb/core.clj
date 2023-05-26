@@ -56,14 +56,15 @@
                            "DblQuoted" (unwrap-arg part)
                            "CmdSubst"
                            (let [stmts (-> part (get "Stmts"))]
-                             (list :out (update-shell (stmt->form (only stmts)) assoc :out :string)))
+                             (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
                            (list 'System/getenv (-> part (get "Param") (get "Value")))
                            (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts)))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
                    redirs "Redirs"
-                   :as stmt}]
+                   :as stmt}
+                  {}]
   (assert (<= (count redirs) 2))
   (case type
     "CallExpr"
@@ -86,20 +87,20 @@
     (let [{op "Op", x "X", y "Y"} cmd]
       (case op
         10 ;; &&
-        (list 'and (list 'zero? (list :exit (update-shell (stmt->form x) assoc :continue true)))
-              (stmt->form y))
+        (list 'and (list 'zero? (list :exit (update-shell (stmt->form x {}) assoc :continue true)))
+              (stmt->form y {}))
         11 ;; ||
-        (list 'and (list 'pos? (list :exit (update-shell (stmt->form x) assoc :continue true)))
-              (stmt->form y))
+        (list 'and (list 'pos? (list :exit (update-shell (stmt->form x {}) assoc :continue true)))
+              (stmt->form y {}))
         12
-        (update-shell (stmt->form y) assoc :in (list :out (update-shell (stmt->form x) assoc :out :string)))))
+        (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))))
     "IfClause"
     (if (get (get cmd "Else") "Then")
-      (list 'if (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
-            (do-if-many (map stmt->form (get cmd "Then")))
-            (do-if-many (map stmt->form (get (get cmd "Else") "Then"))))
-      (list 'when (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond"))) assoc :continue true)))
-            (do-if-many (map stmt->form (get cmd "Then")))))
+      (list 'if (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond")) {}) assoc :continue true)))
+            (do-if-many (map #(stmt->form % {}) (get cmd "Then")))
+            (do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then"))))
+      (list 'when (list 'zero? (list :exit (update-shell (stmt->form (only (get cmd "Cond")) {}) assoc :continue true)))
+            (do-if-many (map #(stmt->form % {}) (get cmd "Then")))))
     "TestClause"
     (let [{{type "Type", op "Op", x "X", y "Y"} "X"} cmd]
       (case type
@@ -113,7 +114,7 @@
 
 (defn ast->forms
   [ast]
-  (map stmt->form (get ast "Stmts")))
+  (map #(stmt->form % {}) (get ast "Stmts")))
 
 ;; ----------
 
