@@ -107,8 +107,11 @@
                (shell "echo" "b")))]
          (x/ast->forms (x/bash->ast "if true; then echo a; echo b; fi")))))
 
-(deftest conditional-expr
+(deftest conditional-expr-==
   (is (= ['(= "x" "x")] (x/ast->forms (x/bash->ast "[[ x == x ]]")))))
+
+(deftest conditional-expr-!=
+  (is (= ['(not= "x" "x")] (x/ast->forms (x/bash->ast "[[ x != x ]]")))))
 
 (deftest conditional-expr-and
   (is (= '[(and (= "x" "x") (shell "echo" "a"))] (x/ast->forms (x/bash->ast "[[ x == x ]] && echo a")))))

@@ -112,7 +112,9 @@
             "BinaryTest"
             (case op
               40 ;; ==
-              (list '= (unwrap-arg x) (unwrap-arg y))))))
+              (list '= (unwrap-arg x) (unwrap-arg y))
+              41 ;; !=
+              (list 'not= (unwrap-arg x) (unwrap-arg y))))))
       (do
         (pp cmd)
         (throw (ex-info (str "Cmd type not implemented: " type) {}))))))
