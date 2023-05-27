@@ -58,7 +58,10 @@
                            (let [stmts (-> part (get "Stmts"))]
                              (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
-                           (list 'System/getenv (-> part (get "Param") (get "Value")))
+                           (let [var-name (-> part (get "Param") (get "Value"))]
+                             (if (= "1" var-name)
+                               (list 'nth '*command-line-args* (Long/parseLong var-name))
+                               (list 'System/getenv var-name)))
                            (do
                              (pp part)
                              (throw (Exception. (str "Part Type not implemented: " (get part "Type"))))))) parts)))
