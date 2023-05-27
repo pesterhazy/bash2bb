@@ -9,6 +9,7 @@
   (doseq [fname (fs/glob "integration" "*.bash")]
     (let [bash (slurp (str fname))
           bb (str (x/bash->bb bash) "\n" "nil")]
+      (println "•" (fs/file-name fname))
       (is (= (:out (shell {:out :string} "bb" "-e" bb))
              (:out (shell {:out :string} "bash" "-c" bash)))))))
 
