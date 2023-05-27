@@ -59,7 +59,10 @@
                              (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
                            (list 'System/getenv (-> part (get "Param") (get "Value")))
-                           (throw (ex-info "Unknown arg type" {:type (get part "Type")})))) parts)))
+                           (throw (ex-info "Unknown arg type" {:type (get part "Type")}))
+                           (do
+                             (pp part)
+                             (throw (Exception. (str "Part Type not implemented: " (get part "Type"))))))) parts)))
 
 (defn builtin [args]
   (case (first args)
@@ -106,7 +109,11 @@
                                           (assoc opts :out 'System/err)))
 
                                       63 ;; here-string
-                                      (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
+                                      (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
+                                      ;; else
+                                      (do
+                                        (pp cmd)
+                                        (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
                                   {}
                                   redirs)]
                       (apply list
@@ -134,7 +141,10 @@
                     11 ;; ||
                     (list 'or (stmt->form x {:context :binary}) (stmt->form y {}))
                     12
-                    (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string))))))
+                    (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))
+                    (do
+                      (pp cmd)
+                      (throw (Exception. (str "BinaryCmd Op not implemented: " op)))))))
       "IfClause"
       (finalize (if (get (get cmd "Else") "Then")
                   (list 'if (stmt->form (only (get cmd "Cond")) {:context :binary})
@@ -152,12 +162,16 @@
               40 ;; ==
               (list '= (unwrap-arg x) (unwrap-arg y))
               41 ;; !=
-              (list 'not= (unwrap-arg x) (unwrap-arg y))))))
+              (list 'not= (unwrap-arg x) (unwrap-arg y))
+              (do
+                (pp cmd)
+                (throw (Exception. (str "BinaryTest Op not implemented: " op))))))))
       "Block"
       (let [[:as stmts] (-> cmd (get "Stmts"))]
         (assert (pos? (count stmts)))
         (let [forms (map #(stmt->form % {}) stmts)]
           (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))
+      ;; else
       (do
         (pp cmd)
         (throw (ex-info (str "Cmd type not implemented: " type) {}))))))
