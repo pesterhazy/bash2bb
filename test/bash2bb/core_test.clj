@@ -79,6 +79,10 @@
   (is (= '[(shell "echo" (nth *command-line-args* 1))]
          (x/ast->forms (x/bash->ast "echo $1")))))
 
+(deftest param-dollar-2
+  (is (= '[(shell "echo" (nth *command-line-args* 2))]
+         (x/ast->forms (x/bash->ast "echo $2")))))
+
 (deftest binary-and
   (is (= '[(and (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "true && echo a")))))

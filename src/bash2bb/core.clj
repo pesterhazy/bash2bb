@@ -59,7 +59,7 @@
                              (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
-                             (if (= "1" var-name)
+                             (if (re-matches #"\d+" var-name)
                                (list 'nth '*command-line-args* (Long/parseLong var-name))
                                (list 'System/getenv var-name)))
                            (do
