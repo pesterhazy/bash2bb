@@ -135,6 +135,10 @@
   (is (= ['(or (do (zero? (:exit (shell {:continue true} "false")))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "{ false; } || echo a")))))
 
+#_(deftest set-builtin
+    (is (= [:???]
+           (x/ast->forms (x/bash->ast "set -e")))))
+
 ;; TODO:
 ;;
 ;; blocks: [[ "${DB_STACK_NAME-}" = ""  ]] && { echo >&2 "DB_STACK_NAME has to be set."; exit 1; }
