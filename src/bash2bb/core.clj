@@ -67,6 +67,8 @@
     (do
       (assert (= 2 (count args)))
       (list 'System/exit (Long/parseLong (second args))))
+    "set"
+    '(do)
     nil))
 
 (defn stmt->form [{{type "Type", :as cmd} "Cmd",
@@ -97,6 +99,12 @@
                                       (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
                                       56
                                       (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                                      59 ;; StdoutToFileDescriptor
+                                      (do
+                                        (let [target (-> redir (get "Word") unwrap-arg)]
+                                          (assert (= "2" target))
+                                          (assoc opts :out 'System/err)))
+
                                       63 ;; here-string
                                       (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
                                   {}

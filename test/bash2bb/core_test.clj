@@ -51,6 +51,10 @@
   (is (= '[(shell {:in (slurp "stdin.txt")} "cat")]
          (x/ast->forms (x/bash->ast "cat < stdin.txt")))))
 
+(deftest echo-redirect-stdout-to-fd
+  (is (= ['(shell {:out System/err} "echo" "a")]
+         (x/ast->forms (x/bash->ast "echo a >&2")))))
+
 (deftest echo-pipe-3
   (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
          (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))
@@ -135,9 +139,9 @@
   (is (= ['(or (do (zero? (:exit (shell {:continue true} "false")))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "{ false; } || echo a")))))
 
-#_(deftest set-builtin
-    (is (= [:???]
-           (x/ast->forms (x/bash->ast "set -e")))))
+(deftest set-builtin
+  (is (= ['(do)]
+         (x/ast->forms (x/bash->ast "set -e")))))
 
 ;; TODO:
 ;;
@@ -148,3 +152,4 @@
 ;; set -euo pipefail
 ;; echo >&2 myerror
 ;; ( cd xxx; echo $PWD )
+;; should be using :extra-env (not :env)
