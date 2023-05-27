@@ -60,7 +60,7 @@
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
                              (if (re-matches #"\d+" var-name)
-                               (list 'nth '*command-line-args* (Long/parseLong var-name))
+                               (list 'nth '*command-line-args* (dec (Long/parseLong var-name)))
                                (list 'System/getenv var-name)))
                            (do
                              (pp part)

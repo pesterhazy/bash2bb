@@ -76,11 +76,11 @@
          (x/ast->forms (x/bash->ast "echo $VAR")))))
 
 (deftest param-dollar-1
-  (is (= '[(shell "echo" (nth *command-line-args* 1))]
+  (is (= '[(shell "echo" (nth *command-line-args* 0))]
          (x/ast->forms (x/bash->ast "echo $1")))))
 
 (deftest param-dollar-2
-  (is (= '[(shell "echo" (nth *command-line-args* 2))]
+  (is (= '[(shell "echo" (nth *command-line-args* 1))]
          (x/ast->forms (x/bash->ast "echo $2")))))
 
 (deftest binary-and
