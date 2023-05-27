@@ -1,0 +1,1 @@
+echo a; exit 0; echo b
