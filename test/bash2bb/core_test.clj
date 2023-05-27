@@ -116,13 +116,17 @@
 (deftest conditional-expr-and
   (is (= '[(and (= "x" "x") (shell "echo" "a"))] (x/ast->forms (x/bash->ast "[[ x == x ]] && echo a")))))
 
-#_(deftest var-assignment
-    (x/pp (x/bash->ast "var=a echo $var"))
-    (is (= '[:???] (x/ast->forms (x/bash->ast "var=a; echo $var")))))
+(deftest var-assignment
+  (is (= '[(def var "a")] (x/ast->forms (x/bash->ast "var=a")))))
+
+(deftest envvar
+  (is (= '[(shell {:env {"ENVVAR" "a"}} "bash" "-c" "echo $ENVVAR")]
+         (x/ast->forms (x/bash->ast "ENVVAR=a bash -c 'echo $ENVVAR'")))))
 
 ;; TODO:
 ;;
-;; var=1
+;; ENVVAR=a bash -c 'echo $ENVVAR'
+;; vars vs environment vars
 ;; for loop
 ;; export
 ;; set -euo pipefail
