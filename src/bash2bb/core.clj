@@ -140,6 +140,11 @@
               (list '= (unwrap-arg x) (unwrap-arg y))
               41 ;; !=
               (list 'not= (unwrap-arg x) (unwrap-arg y))))))
+      "Block"
+      (let [[:as stmts] (-> cmd (get "Stmts"))]
+        (assert (pos? (count stmts)))
+        (let [forms (map #(stmt->form % {}) stmts)]
+          (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))
       (do
         (pp cmd)
         (throw (ex-info (str "Cmd type not implemented: " type) {}))))))

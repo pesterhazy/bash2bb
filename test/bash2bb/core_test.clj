@@ -127,13 +127,20 @@
   (is (= '[(System/exit 0)]
          (x/ast->forms (x/bash->ast "exit 0")))))
 
+(deftest block
+  (is (= ['(do (shell "echo" "one") (shell "echo" "two"))]
+         (x/ast->forms (x/bash->ast "{ echo one; echo two; }")))))
+
+(deftest block-boolean
+  (is (= ['(or (do (zero? (:exit (shell {:continue true} "false")))) (shell "echo" "a"))]
+         (x/ast->forms (x/bash->ast "{ false; } || echo a")))))
+
 ;; TODO:
 ;;
+;; blocks: [[ "${DB_STACK_NAME-}" = ""  ]] && { echo >&2 "DB_STACK_NAME has to be set."; exit 1; }
 ;; vars vs environment vars
 ;; for loop
 ;; export
 ;; set -euo pipefail
-;; exit
 ;; echo >&2 myerror
-;; [[ "${DB_STACK_NAME-}" = ""  ]] && { echo >&2 "DB_STACK_NAME has to be set."; exit 1; }
 ;; ( cd xxx; echo $PWD )
