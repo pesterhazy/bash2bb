@@ -59,7 +59,6 @@
                              (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
                            (list 'System/getenv (-> part (get "Param") (get "Value")))
-                           (throw (ex-info "Unknown arg type" {:type (get part "Type")}))
                            (do
                              (pp part)
                              (throw (Exception. (str "Part Type not implemented: " (get part "Type"))))))) parts)))

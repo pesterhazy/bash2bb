@@ -75,6 +75,11 @@
   (is (= '[(shell "echo" (System/getenv "VAR"))]
          (x/ast->forms (x/bash->ast "echo $VAR")))))
 
+#_(deftest param-dollar-1
+    (x/pp (x/bash->ast "echo $1"))
+    (is (= '[:???]
+           (x/ast->forms (x/bash->ast "echo $1")))))
+
 (deftest binary-and
   (is (= '[(and (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "true && echo a")))))
@@ -148,7 +153,7 @@
 
 ;; TODO:
 ;;
-;; blocks: [[ "${DB_STACK_NAME-}" = ""  ]] && { echo >&2 "DB_STACK_NAME has to be set."; exit 1; }
+;; $1
 ;; vars vs environment vars
 ;; for loop
 ;; export
