@@ -73,21 +73,28 @@
             form))]
     (case type
       "CallExpr"
-      (finalize (let [opts
-                      (reduce (fn [opts redir]
-                                (case (get redir "Op")
-                                  54
-                                  (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
-                                  56
-                                  (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
-                                  63 ;; here-string
-                                  (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
-                              {}
-                              redirs)]
-                  (apply list
-                         'shell
-                         (into (if (empty? opts) [] [opts])
-                               (map unwrap-arg (-> cmd (get "Args")))))))
+      (let [{args "Args", assigns "Assigns"} cmd]
+        (cond
+          (and (seq args) (seq assigns))
+          (throw (Exception. "Not implemented: args and assigns"))
+          (seq args)
+          (finalize (let [opts
+                          (reduce (fn [opts redir]
+                                    (case (get redir "Op")
+                                      54
+                                      (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
+                                      56
+                                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                                      63 ;; here-string
+                                      (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
+                                  {}
+                                  redirs)]
+                      (apply list
+                             'shell
+                             (into (if (empty? opts) [] [opts])
+                                   (map unwrap-arg args)))))
+          :else
+          (throw (Exception. "Not Implemented yet"))))
       "BinaryCmd"
       (finalize (let [{op "Op", x "X", y "Y"} cmd]
                   (case op

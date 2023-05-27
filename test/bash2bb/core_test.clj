@@ -116,5 +116,17 @@
 (deftest conditional-expr-and
   (is (= '[(and (= "x" "x") (shell "echo" "a"))] (x/ast->forms (x/bash->ast "[[ x == x ]] && echo a")))))
 
-;; TODO: for loop
-;; TODO: export
+#_(deftest var-assignment
+    (x/pp (x/bash->ast "var=a echo $var"))
+    (is (= '[:???] (x/ast->forms (x/bash->ast "var=a; echo $var")))))
+
+;; TODO:
+;;
+;; var=1
+;; for loop
+;; export
+;; set -euo pipefail
+;; exit
+;; echo >&2 myerror
+;; [[ "${DB_STACK_NAME-}" = ""  ]] && { echo >&2 "DB_STACK_NAME has to be set."; exit 1; }
+;; ( cd xxx; echo $PWD )
