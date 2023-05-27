@@ -143,19 +143,20 @@
   [ast]
   (map #(stmt->form % {}) (get ast "Stmts")))
 
-;; ----------
-
 (defn bash->ast [bash]
   (json/parse-string (:out (shell {:in bash :out :string} "shfmt" "--to-json"))))
 
 (defn preamble []
   '[(require '[babashka.process :refer [shell pipeline pb]])])
 
+(defn bash->bb [bash]
+  (->> (concat (preamble) (ast->forms (bash->ast bash)))
+       (map prn-str)
+       (apply str)))
+
+;; ----------
+
 (defn -main [& args]
   (if (= "--ast" (first args))
     (pp (bash->ast (slurp *in*)))
-    (do
-      (doseq [form (preamble)]
-        (prn form))
-      (doseq [form (ast->forms (bash->ast (slurp *in*)))]
-        (prn form)))))
+    (print (bash->bb (slurp *in*)))))
