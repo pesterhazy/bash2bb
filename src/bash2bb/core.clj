@@ -159,7 +159,7 @@
           (case type
             "BinaryTest"
             (case op
-              40 ;; ==
+              (40 74) ;; ==
               (list '= (unwrap-arg x) (unwrap-arg y))
               41 ;; !=
               (list 'not= (unwrap-arg x) (unwrap-arg y))
