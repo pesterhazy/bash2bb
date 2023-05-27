@@ -123,9 +123,12 @@
   (is (= '[(shell {:env {"ENVVAR" "a"}} "bash" "-c" "echo $ENVVAR")]
          (x/ast->forms (x/bash->ast "ENVVAR=a bash -c 'echo $ENVVAR'")))))
 
+(deftest exit
+  (is (= '[(System/exit 0)]
+         (x/ast->forms (x/bash->ast "exit 0")))))
+
 ;; TODO:
 ;;
-;; ENVVAR=a bash -c 'echo $ENVVAR'
 ;; vars vs environment vars
 ;; for loop
 ;; export

@@ -80,32 +80,37 @@
                 (-> assigns only (get "Name") (get "Value") symbol)
                 (-> assigns only (get "Value") unwrap-arg))
           (seq args)
-          (-> (let [opts
-                    (reduce (fn [opts redir]
-                              (case (get redir "Op")
-                                54
-                                (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
-                                56
-                                (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
-                                63 ;; here-string
-                                (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
-                            {}
-                            redirs)]
-                (apply list
-                       'shell
-                       (into (if (empty? opts) [] [opts])
-                             (map unwrap-arg args))))
-              (update-shell (fn [opts]
-                              (reduce (fn [opts assign]
-                                        (update opts
-                                                :env
-                                                (fn [env]
-                                                  (assoc env
-                                                         (-> assign (get "Name") (get "Value"))
-                                                         (-> assign (get "Value") unwrap-arg)))))
-                                      opts
-                                      assigns)))
-              finalize)
+          (let [unwrapped-args (map unwrap-arg args)]
+            (if (= "exit" (first unwrapped-args))
+              (do
+                (assert (= 2 (count unwrapped-args)))
+                (list 'System/exit (Long/parseLong (second unwrapped-args))))
+              (-> (let [opts
+                        (reduce (fn [opts redir]
+                                  (case (get redir "Op")
+                                    54
+                                    (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
+                                    56
+                                    (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                                    63 ;; here-string
+                                    (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))))
+                                {}
+                                redirs)]
+                    (apply list
+                           'shell
+                           (into (if (empty? opts) [] [opts])
+                                 unwrapped-args)))
+                  (update-shell (fn [opts]
+                                  (reduce (fn [opts assign]
+                                            (update opts
+                                                    :env
+                                                    (fn [env]
+                                                      (assoc env
+                                                             (-> assign (get "Name") (get "Value"))
+                                                             (-> assign (get "Value") unwrap-arg)))))
+                                          opts
+                                          assigns)))
+                  finalize)))
           :else
           (throw (Exception. "Unknown CallExpr"))))
       "BinaryCmd"
