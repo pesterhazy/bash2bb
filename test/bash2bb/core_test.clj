@@ -75,6 +75,10 @@
   (is (= '[(shell "echo" VAR)]
          (x/ast->forms (x/bash->ast "echo $VAR")))))
 
+#_(deftest param-exp
+    (is (= '[(def VAR (System/getenv "VAR")) (shell "echo" VAR)]
+           (x/ast->forms (x/bash->ast "echo $VAR")))))
+
 (deftest param-dollar-1
   (is (= '[(shell "echo" (nth *command-line-args* 0))]
          (x/ast->forms (x/bash->ast "echo $1")))))
