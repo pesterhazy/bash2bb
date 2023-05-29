@@ -5,6 +5,11 @@
    [babashka.process :refer [shell]]
    [cheshire.core :as json]))
 
+(def ^:dynamic *!state* nil)
+
+(defn- swap-state! [& args]
+  (apply swap! *!state* args))
+
 (defn fixup
   [v]
   (clojure.walk/prewalk (fn [v]
@@ -67,7 +72,9 @@
                                (= "#" var-name)
                                (list 'dec (list 'count '*command-line-args*))
                                :else
-                               (symbol var-name)))
+                               (do
+                                 (swap-state! update :vars (fn [vars] (conj (or vars #{}) (symbol var-name))))
+                                 (symbol var-name))))
                            (do
                              (pp part)
                              (throw (Exception. (str "Part Type not implemented: " (get part "Type"))))))) parts)))
@@ -82,10 +89,9 @@
     '(do)
     nil))
 
-(defn stmt->form [{{type "Type", :as cmd} "Cmd",
-                   redirs "Redirs"
-                   :as stmt}
-                  {:keys [context] :or {context :stmt}}]
+(defn- stmt->form [{{type "Type", :as cmd} "Cmd",
+                    redirs "Redirs"}
+                   {:keys [context] :or {context :stmt}}]
   (assert (<= (count redirs) 2))
   (let [finalize
         (fn [form]
@@ -184,9 +190,19 @@
         (pp cmd)
         (throw (ex-info (str "Cmd type not implemented: " type) {}))))))
 
+(defn ast->forms+state
+  [ast]
+  (binding [*!state* (atom {})]
+    [(mapv #(stmt->form % {}) (get ast "Stmts")) @*!state*]))
+
 (defn ast->forms
   [ast]
-  (map #(stmt->form % {}) (get ast "Stmts")))
+  (first (ast->forms+state ast)))
+
+(defn declarations [state]
+  (->> (:vars state)
+       (map (fn [sym] (list 'def sym (list 'System/getenv (name sym)))))
+       vec))
 
 (defn bash->ast [bash]
   (json/parse-string (:out (shell {:in bash :out :string} "shfmt" "--to-json"))))
@@ -195,9 +211,10 @@
   '[(require '[babashka.process :refer [shell pipeline pb]])])
 
 (defn bash->bb [bash]
-  (->> (concat (preamble) (ast->forms (bash->ast bash)))
-       (map prn-str)
-       (apply str)))
+  (let [[forms state] (ast->forms+state (bash->ast bash))]
+    (->> (concat (preamble) (declarations state) forms)
+         (map prn-str)
+         (apply str))))
 
 ;; ----------
 
