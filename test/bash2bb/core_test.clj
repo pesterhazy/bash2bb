@@ -162,6 +162,12 @@
   (is (= ['(do)]
          (x/ast->forms (x/bash->ast "set -e")))))
 
+#_(deftest var-default
+    (is (= [:???]
+           (x/ast->forms (x/bash->ast "echo ${1-mydefault}")))))
+
+;; ----------------------
+
 (deftest has-state
   (is (map? (second (x/ast->forms+state (x/bash->ast ""))))))
 

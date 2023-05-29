@@ -64,6 +64,10 @@
                              (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
+                             #_(when (get part "Exp")
+                                 (pp (get part "Exp"))
+                                 (assert (= 70 (-> part (get "Exp") (get "Op"))))
+                                 (prn (-> part (get "Exp") (get "Word") (get "Parts") only (get "Value"))))
                              (cond
                                (re-matches #"\d+" var-name)
                                (let [idx (Long/parseLong var-name)]
