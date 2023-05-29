@@ -72,7 +72,7 @@
          (x/ast->forms (x/bash->ast "cat <<< abc")))))
 
 (deftest param-exp
-  (is (= '[(shell "echo" (System/getenv "VAR"))]
+  (is (= '[(shell "echo" VAR)]
          (x/ast->forms (x/bash->ast "echo $VAR")))))
 
 (deftest param-dollar-1
@@ -82,6 +82,10 @@
 (deftest param-dollar-2
   (is (= '[(shell "echo" (nth *command-line-args* 1))]
          (x/ast->forms (x/bash->ast "echo $2")))))
+
+(deftest param-dollar-hash
+  (is (= '[(shell "echo" (dec (count *command-line-args*)))]
+         (x/ast->forms (x/bash->ast "echo $#")))))
 
 (deftest binary-and
   (is (= '[(and (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
@@ -134,8 +138,12 @@
 (deftest var-assignment
   (is (= '[(def var "a")] (x/ast->forms (x/bash->ast "var=a")))))
 
+(deftest var-expansion
+  (is (= '[(def var "a") (shell "echo" var)]
+         (x/ast->forms (x/bash->ast "var=a; echo $var")))))
+
 (deftest envvar
-  (is (= '[(shell {:env {"ENVVAR" "a"}} "bash" "-c" "echo $ENVVAR")]
+  (is (= '[(shell {:extra-env {"ENVVAR" "a"}} "bash" "-c" "echo $ENVVAR")]
          (x/ast->forms (x/bash->ast "ENVVAR=a bash -c 'echo $ENVVAR'")))))
 
 (deftest exit
@@ -156,11 +164,7 @@
 
 ;; TODO:
 ;;
-;; $1
 ;; vars vs environment vars
 ;; for loop
 ;; export
-;; set -euo pipefail
-;; echo >&2 myerror
 ;; ( cd xxx; echo $PWD )
-;; should be using :extra-env (not :env)

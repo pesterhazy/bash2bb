@@ -59,11 +59,15 @@
                              (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
-                             (if (re-matches #"\d+" var-name)
+                             (cond
+                               (re-matches #"\d+" var-name)
                                (let [idx (Long/parseLong var-name)]
                                  (assert (pos? idx))
                                  (list 'nth '*command-line-args* (dec idx)))
-                               (list 'System/getenv var-name)))
+                               (= "#" var-name)
+                               (list 'dec (list 'count '*command-line-args*))
+                               :else
+                               (symbol var-name)))
                            (do
                              (pp part)
                              (throw (Exception. (str "Part Type not implemented: " (get part "Type"))))))) parts)))
@@ -127,7 +131,7 @@
                     (update-shell (fn [opts]
                                     (reduce (fn [opts assign]
                                               (update opts
-                                                      :env
+                                                      :extra-env
                                                       (fn [env]
                                                         (assoc env
                                                                (-> assign (get "Name") (get "Value"))
