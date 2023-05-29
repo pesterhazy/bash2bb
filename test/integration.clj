@@ -10,8 +10,10 @@
     (let [bash (slurp (str fname))
           bb (str (x/bash->bb bash) "\n" "nil")]
       (println "•" (fs/file-name fname))
-      (is (= (:out (shell {:out :string} "bb" "-e" bb))
-             (:out (shell {:out :string} "bash" "-c" bash)))))))
+      (is (= (:out (shell {:out :string :extra-env {"WELLKNOWNVAR" "abc"}}
+                          "bb" "-e" bb))
+             (:out (shell {:out :string :extra-env {"WELLKNOWNVAR" "abc"}}
+                          "bash" "-c" bash)))))))
 
 (defn -main []
   (run-tests 'integration))

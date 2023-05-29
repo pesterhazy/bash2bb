@@ -184,7 +184,6 @@
 
 ;; TODO:
 ;;
-;; vars vs environment vars
 ;; for loop
 ;; export
 ;; ( cd xxx; echo $PWD )
