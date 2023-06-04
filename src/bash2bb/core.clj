@@ -62,7 +62,10 @@
                            "DblQuoted" (unwrap-arg part)
                            "CmdSubst"
                            (let [stmts (-> part (get "Stmts"))]
-                             (list :out (update-shell (stmt->form (only stmts) {}) assoc :out :string)))
+                             (->> stmts
+                                  (map (fn [stmt]
+                                         (list :out (update-shell (stmt->form stmt {}) assoc :out :string))))
+                                  concat-if-many))
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
                              #_(when (get part "Exp")
