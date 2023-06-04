@@ -6,11 +6,11 @@ Translates bash scripts into [babashka](https://babashka.org/) scripts.
 
 This can be useful in two ways:
 
-- Conversion: You are running into limitations with a bash script, so you'd like to convert it to babashka. `bash2bb` gives you a rough translation of the existing code. Don't blindly trust the output – always review the generated script.
+- Learning: You already know how to perform a certain task in bash and you'd like to know how to do the same thing in babashka. With `bash2bb`, you can translate your bash knowledge into the beginning of a babashka program.
 
-- Learning: You know how to perform a certain action in bash and you'd like to know how to do the same in babashka. With `bash2bb`, you can translate your bash knowledge into the beginning of a babashka program.
+- Upgrading: You are running into limitations with a bash script, so you'd like to convert it to babashka. `bash2bb` gives you a rough translation of the existing code. But don't blindly trust the output – always review the generated script!
 
-*This is an early alpha. Lots of bash language constructs aren't working*
+*This is an early alpha release. Lots of bash language constructs aren't working*
 
 ## Installation
 
