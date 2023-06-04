@@ -55,6 +55,10 @@
   (is (= ['(shell {:out System/err} "echo" "a")]
          (x/ast->forms (x/bash->ast "echo a >&2")))))
 
+(deftest echo-redirect-stderr-to-stdout
+  (is (= ['(shell {:err System/out} "echo" "a")]
+         (x/ast->forms (x/bash->ast "echo a 2>&1")))))
+
 (deftest echo-pipe-3
   (is (= ['(shell {:in (:out (shell {:in (:out (shell {:out :string} "echo" "ab")) :out :string} "cat"))} "rev")]
          (x/ast->forms (x/bash->ast "echo ab | cat | rev")))))

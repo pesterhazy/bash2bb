@@ -115,26 +115,36 @@
           (let [unwrapped-args (map unwrap-arg args)]
             (or (builtin unwrapped-args)
                 (-> (let [opts
-                          (reduce (fn [opts redir]
-                                    (case (get redir "Op")
-                                      54
-                                      (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
-                                      56
-                                      (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
-                                      59 ;; StdoutToFileDescriptor
-                                      (do
-                                        (let [target (-> redir (get "Word") unwrap-arg)]
-                                          (assert (= "2" target))
-                                          (assoc opts :out 'System/err)))
+                          (reduce
+                           (fn [opts redir]
+                             (case (get redir "Op")
+                               54
+                               (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
+                               56
+                               (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                               59 ;; StdoutToFileDescriptor
+                               (do
+                                 (let [target (-> redir (get "Word") unwrap-arg)]
+                                   (cond
+                                     (and (nil? (get "N" redir))
+                                          (= "2" target))
+                                     (assoc opts :out 'System/err)
+                                     (and (= "2" (-> redir (get "N") (get "Value")))
+                                          (= "1" target))
+                                     (assoc opts :err 'System/out)
+                                     :else
+                                     (do
+                                       (pp redir)
+                                       (throw (Exception. (str "Don't know how to translate redirect")))))))
 
-                                      63 ;; here-string
-                                      (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
-                                      ;; else
-                                      (do
-                                        (pp cmd)
-                                        (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
-                                  {}
-                                  redirs)]
+                               63 ;; here-string
+                               (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
+                               ;; else
+                               (do
+                                 (pp cmd)
+                                 (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
+                           {}
+                           redirs)]
                       (apply list
                              'shell
                              (into (if (empty? opts) [] [opts])

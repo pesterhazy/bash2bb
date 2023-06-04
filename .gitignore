@@ -1,3 +1,5 @@
+.cpcache
+.clj-kondo/.cache
 .clj-kondo
 target
 .lsp
