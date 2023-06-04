@@ -14,7 +14,7 @@ This can be useful in two ways:
 
 ## Installation
 
-bash2bb depends on the [shfmt](https://github.com/mvdan/sh) command-line tool. On macOS this can be installed like so:
+bash2bb depends on the [shfmt](https://github.com/mvdan/sh) command-line tool. On macOS this dependency can be installed like via homebrew:
 
 ```
 brew install shfmt
