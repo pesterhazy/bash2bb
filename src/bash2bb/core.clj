@@ -4,8 +4,7 @@
    [clojure.pprint :refer [pprint]]
    [babashka.cli :as cli]
    [babashka.process :refer [shell]]
-   [cheshire.core :as json]
-   [zprint.core :as z]))
+   [cheshire.core :as json]))
 
 (def ^:dynamic *!state* nil)
 
@@ -232,5 +231,8 @@
       (pp (bash->ast (slurp (or (:file cli) *in*))))
       (let [bb (bash->bb (slurp (or (:file cli) *in*)))]
         (if (:zprint cli)
-          (print (z/zprint-file-str bb "script"))
+          ;; requiring zprint doubles startup time, so load lazily
+          (print ((requiring-resolve 'zprint.core/zprint-file-str)
+                  bb
+                  "script"))
           (print bb))))))
