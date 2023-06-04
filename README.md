@@ -1,14 +1,30 @@
 # bash2bb
 
+**Translates bash scripts into babashka scripts.**
+
+```
+% cat myscript.bash
+#!/bin/bash
+OF=myhome_directory_$(date +%Y%m%d).tar.gz
+tar -czf $OF /home/linuxconfig 
+
+% bash2bb myscript.bash
+(require (quote [babashka.process :refer [shell pipeline pb]]))
+(def OF (System/getenv "OF"))
+(def OF (str "myhome_directory_" (:out (shell {:out :string} "date" "+%Y%m%d")) ".tar.gz"))
+(shell "tar" "-czf" OF "/home/linuxconfig")
+```
+
 ## About
 
-Translates bash scripts into [babashka](https://babashka.org/) scripts.
+`bash2bb` generates a [babashka](https://babashka.org/) program that's roughly equivalent to an input bash script. This can help in a few ways:
 
-This can be useful in two ways:
+- _Learning_: If you already know how to perform a certain task in bash, you may wanto to learn how to do the same thing in babashka. With `bash2bb`, you can translate your bash knowledge into (the beginning of) a babashka program.
 
-- Learning: You already know how to perform a certain task in bash and you'd like to know how to do the same thing in babashka. With `bash2bb`, you can translate your bash knowledge into the beginning of a babashka program.
+- _Upgrading_: When you run up against limitations with bash as a scripting language, you may want to convert an existing bash script to babashka. `bash2bb` gives you a rough translation of the code.
 
-- Upgrading: You are running up against limitations with a bash script, so you'd like to convert it to babashka. `bash2bb` gives you a rough translation of the existing code. But don't blindly trust the output – always review the generated script!
+> **Note**
+> While `bash2bb` makes an effort to convert various bash features into their babashka equivalents, the result is only a rough translation. Don't blindly trust the output – always review the generated script!
 
 *This is an early alpha release. Many bash language constructs aren't implemented yet.*
 
