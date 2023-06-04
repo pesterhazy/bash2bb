@@ -4,7 +4,8 @@
    [clojure.pprint :refer [pprint]]
    [babashka.cli :as cli]
    [babashka.process :refer [shell]]
-   [cheshire.core :as json]))
+   [cheshire.core :as json]
+   [zprint.core :as z]))
 
 (def ^:dynamic *!state* nil)
 
@@ -223,10 +224,13 @@
 
 ;; ----------
 
-(def cli-opts {:coerce {:ast :boolean} :args->opts [:file]})
+(def cli-opts {:coerce {:ast :boolean, :zprint :boolean} :args->opts [:file]})
 
 (defn -main [& args]
   (let [cli (cli/parse-opts args cli-opts)]
     (if (:ast cli)
       (pp (bash->ast (slurp (or (:file cli) *in*))))
-      (print (bash->bb (slurp (or (:file cli) *in*)))))))
+      (let [bb (bash->bb (slurp (or (:file cli) *in*)))]
+        (if (:zprint cli)
+          (print (z/zprint-file-str bb "script"))
+          (print bb))))))
