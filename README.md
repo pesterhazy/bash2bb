@@ -59,7 +59,7 @@ bbin install io.github.pesterhazy/bash2bb
 Pass the script you'd like to translate as an argument:
 
 ```
-bash2bb myscript.bb
+bash2bb myscript.bash
 ```
 
 If no argument is specified, bash2bb reads from stdin.
