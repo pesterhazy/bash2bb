@@ -10,19 +10,23 @@ This can be useful in two ways:
 
 - Upgrading: You are running into limitations with a bash script, so you'd like to convert it to babashka. `bash2bb` gives you a rough translation of the existing code. But don't blindly trust the output – always review the generated script!
 
-*This is an early alpha release. Lots of bash language constructs aren't working*
+*This is an early alpha release. Many bash language constructs aren't implemented yet.*
 
 ## Installation
 
-bash2bb depends on the [shfmt](https://github.com/mvdan/sh) command-line tool. On macOS this dependency can be installed like via homebrew:
+bash2bb depends on the [shfmt](https://github.com/mvdan/sh) command-line tool. On macOS this dependency can be installed via homebrew:
 
 ```
 brew install shfmt
 ```
 
-You will also need to install [bbin](https://github.com/babashka/bbin).
+You will also need to install [bbin](https://github.com/babashka/bbin):
 
-With that out of the way, you can install bash2bb:
+```
+brew install babashka/brew/bbin
+```
+
+With that out of the way, you can now use bbin to install bash2bb:
 
 ```
 bbin install io.github.pesterhazy/bash2bb
@@ -36,4 +40,14 @@ Pass the script you'd like to translate as an argument:
 bash2bb myscript.bb
 ```
 
-if no argument is specified, bash2bb reads from stdin.
+If no argument is specified, bash2bb reads from stdin.
+
+## Implementation status
+
+- [x] Redirection
+- [x] Command substitution
+- [x] If statements
+- [ ] Arrays, in particular `$@`
+- [ ] Functions
+- [ ] for loops
+- [ ] while loops
