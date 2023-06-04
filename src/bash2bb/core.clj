@@ -1,5 +1,6 @@
 (ns bash2bb.core
   (:require
+   [backtick :refer [template]]
    [clojure.walk]
    [clojure.pprint :refer [pprint]]
    [babashka.cli :as cli]
@@ -36,8 +37,8 @@
                (drop 2 cmd)
                (drop 1 cmd))]
     (if (empty? opts)
-      (apply list 'shell args)
-      (apply list 'shell opts args))))
+      (template (shell ~@args))
+      (template (shell ~opts ~@args)))))
 
 (defn only [xs]
   (assert (= 1 (count xs)))
@@ -92,7 +93,7 @@
     "exit"
     (do
       (assert (= 2 (count args)))
-      (list 'System/exit (Long/parseLong (second args))))
+      (template (System/exit ~(Long/parseLong (second args)))))
     "set"
     '(do)
     nil))
