@@ -2,6 +2,7 @@
   (:require
    [clojure.walk]
    [clojure.pprint :refer [pprint]]
+   [babashka.cli :as cli]
    [babashka.process :refer [shell]]
    [cheshire.core :as json]))
 
@@ -222,7 +223,10 @@
 
 ;; ----------
 
+(def cli-opts {:coerce {:ast :boolean} :args->opts [:file]})
+
 (defn -main [& args]
-  (if (= "--ast" (first args))
-    (pp (bash->ast (slurp *in*)))
-    (print (bash->bb (slurp *in*)))))
+  (let [cli (cli/parse-opts args cli-opts)]
+    (if (:ast cli)
+      (pp (bash->ast (slurp (or (:file cli) *in*))))
+      (print (bash->bb (slurp (or (:file cli) *in*)))))))
