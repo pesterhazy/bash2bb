@@ -8,7 +8,7 @@ This can be useful in two ways:
 
 - Learning: You already know how to perform a certain task in bash and you'd like to know how to do the same thing in babashka. With `bash2bb`, you can translate your bash knowledge into the beginning of a babashka program.
 
-- Upgrading: You are running into limitations with a bash script, so you'd like to convert it to babashka. `bash2bb` gives you a rough translation of the existing code. But don't blindly trust the output – always review the generated script!
+- Upgrading: You are running up against limitations with a bash script, so you'd like to convert it to babashka. `bash2bb` gives you a rough translation of the existing code. But don't blindly trust the output – always review the generated script!
 
 *This is an early alpha release. Many bash language constructs aren't implemented yet.*
 
@@ -47,6 +47,7 @@ If no argument is specified, bash2bb reads from stdin.
 - [x] Redirection
 - [x] Command substitution
 - [x] If statements
+- [x] Quoting rules
 - [ ] Arrays, in particular `$@`
 - [ ] Functions
 - [ ] for loops
