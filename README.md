@@ -42,6 +42,12 @@ You will also need to install [bbin](https://github.com/babashka/bbin):
 brew install babashka/brew/bbin
 ```
 
+and
+
+```
+echo 'export PATH="$PATH:$HOME/.babashka/bbin/bin"' >> ~/.$(basename $SHELL)rc && exec $SHELL
+```
+
 With that out of the way, you can now use bbin to install bash2bb:
 
 ```
