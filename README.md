@@ -24,7 +24,7 @@ tar -czf $OF /home/linuxconfig
 - _Upgrading_: When you run up against limitations with bash as a scripting language, you may want to convert an existing bash script to babashka. `bash2bb` gives you a rough translation of the code.
 
 > **Note**
-> While `bash2bb` makes an effort to convert various bash features into their babashka equivalents, the result is only a rough translation. Don't blindly trust the output – always review the generated script!
+> While `bash2bb` makes an effort to emulate various bash features, the result is likely to contain inaccuracies. Don't blindly trust the output – always review the generated script!
 
 *This is an early alpha release. Many bash language constructs aren't implemented yet.*
 
