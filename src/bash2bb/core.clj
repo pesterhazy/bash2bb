@@ -205,7 +205,16 @@
         (let [forms (map #(stmt->form % {}) stmts)]
           (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))
       "DeclClause"
-      (template (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> cmd (get "Args") only (get "Name") (get "Value")) ~(-> cmd (get "Args") only (get "Name") (get "Value") symbol)))))
+      (let [arg (-> cmd (get "Args") only)]
+        (assert (= "export" (-> cmd (get "Variant") (get "Value"))))
+        (if (-> arg (get "Naked"))
+          (template (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> arg (get "Name") (get "Value")) ~(-> arg (get "Name") (get "Value") symbol)))))
+          (template
+           (do
+             (def
+               ~(-> arg (get "Name") (get "Value") symbol)
+               ~(-> arg (get "Value") unwrap-arg))
+             (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> arg (get "Name") (get "Value")) ~(-> arg (get "Name") (get "Value") symbol))))))))
       ;; else
       (do
         (pp cmd)
