@@ -97,7 +97,7 @@
          (x/ast->forms (x/bash->ast "echo $#")))))
 
 #_(deftest param-dollar-at
-    (is (= '???
+    (is (= '[(apply shell "echo" *command-line-args*)]
            (x/ast->forms (x/bash->ast "echo $@")))))
 
 (deftest binary-and
