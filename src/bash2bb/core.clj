@@ -204,6 +204,8 @@
         (assert (pos? (count stmts)))
         (let [forms (map #(stmt->form % {}) stmts)]
           (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))
+      "DeclClause"
+      (template (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> cmd (get "Args") only (get "Name") (get "Value")) ~(-> cmd (get "Args") only (get "Name") (get "Value") symbol)))))
       ;; else
       (do
         (pp cmd)

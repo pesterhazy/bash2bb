@@ -159,6 +159,9 @@
   (is (= '[(shell {:extra-env {"ENVVAR" "a"}} "bash" "-c" "echo $ENVVAR")]
          (x/ast->forms (x/bash->ast "ENVVAR=a bash -c 'echo $ENVVAR'")))))
 
+(deftest export-var
+  (is (= '[(def VAR "a") (alter-var-root (var babashka.process/*defaults*) (fn [m] (update m :extra-env assoc "VAR" VAR)))] (x/ast->forms (x/bash->ast "VAR=a; export VAR")))))
+
 (deftest exit
   (is (= '[(System/exit 0)]
          (x/ast->forms (x/bash->ast "exit 0")))))
@@ -203,6 +206,7 @@
 
 ;; TODO:
 ;;
+;; should we use trim-newline on shell output?
 ;; for loop
-;; export
+;; export VAR=a
 ;; ( cd xxx; echo $PWD )
