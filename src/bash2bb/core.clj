@@ -229,11 +229,13 @@
 (defn preamble []
   '[(require '[babashka.process :refer [shell pipeline pb]])])
 
+(def shebang "#!/usr/bin/env bb\n\n")
+
 (defn bash->bb [bash]
   (let [[forms state] (ast->forms+state (bash->ast bash))]
     (->> (concat (preamble) (declarations state) forms)
          (map prn-str)
-         (apply str))))
+         (apply str shebang))))
 
 ;; ----------
 

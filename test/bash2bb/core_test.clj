@@ -194,11 +194,11 @@
   (is (= '[(def VAR (System/getenv "VAR"))] (x/declarations {:vars #{'VAR}}))))
 
 (deftest bash->bb
-  (is (= "(require (quote [babashka.process :refer [shell pipeline pb]]))\n(shell \"echo\" \"a\")\n"
+  (is (= (str x/shebang "(require (quote [babashka.process :refer [shell pipeline pb]]))\n(shell \"echo\" \"a\")\n")
          (x/bash->bb "echo a"))))
 
 (deftest bash->bb-var
-  (is (= "(require (quote [babashka.process :refer [shell pipeline pb]]))\n(def VAR (System/getenv \"VAR\"))\n(shell \"echo\" VAR)\n"
+  (is (= (str x/shebang "(require (quote [babashka.process :refer [shell pipeline pb]]))\n(def VAR (System/getenv \"VAR\"))\n(shell \"echo\" VAR)\n")
          (x/bash->bb "echo $VAR"))))
 
 ;; TODO:
