@@ -127,19 +127,18 @@
                                56
                                (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
                                59 ;; StdoutToFileDescriptor
-                               (do
-                                 (let [target (-> redir (get "Word") unwrap-arg)]
-                                   (cond
-                                     (and (nil? (get "N" redir))
-                                          (= "2" target))
-                                     (assoc opts :out 'System/err)
-                                     (and (= "2" (-> redir (get "N") (get "Value")))
-                                          (= "1" target))
-                                     (assoc opts :err 'System/out)
-                                     :else
-                                     (do
-                                       (pp redir)
-                                       (throw (Exception. (str "Don't know how to translate redirect")))))))
+                               (let [target (-> redir (get "Word") unwrap-arg)]
+                                 (cond
+                                   (and (nil? (get "N" redir))
+                                        (= "2" target))
+                                   (assoc opts :out 'System/err)
+                                   (and (= "2" (-> redir (get "N") (get "Value")))
+                                        (= "1" target))
+                                   (assoc opts :err 'System/out)
+                                   :else
+                                   (do
+                                     (pp redir)
+                                     (throw (Exception. (str "Don't know how to translate redirect"))))))
 
                                63 ;; here-string
                                (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
