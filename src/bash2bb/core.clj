@@ -49,12 +49,12 @@
 
 (defn concat-if-many [xs]
   (if (> (count xs) 1)
-    (apply list 'str xs)
+    (template (str ~@xs))
     (first xs)))
 
 (defn do-if-many [xs]
   (if (> (count xs) 1)
-    (apply list 'do xs)
+    (template (do ~@xs))
     (first xs)))
 
 (defn unwrap-arg [{parts "Parts"}]
@@ -78,9 +78,9 @@
                                (re-matches #"\d+" var-name)
                                (let [idx (Long/parseLong var-name)]
                                  (assert (pos? idx))
-                                 (list 'nth '*command-line-args* (dec idx)))
+                                 (template (nth *command-line-args* ~(dec idx))))
                                (= "#" var-name)
-                               (list 'dec (list 'count '*command-line-args*))
+                               '(dec (count *command-line-args*))
                                :else
                                (do
                                  (swap-state! update :vars (fn [vars] (conj (or vars #{}) (symbol var-name))))
@@ -113,16 +113,16 @@
   (let [finalize
         (fn [form]
           (if (and (= :binary context) (list? form) (= 'shell (first form)))
-            (list 'zero? (list :exit (update-shell form assoc :continue true)))
+            (template (zero? (:exit ~(update-shell form assoc :continue true))))
             form))]
     (case type
       "CallExpr"
       (let [{args "Args", assigns "Assigns"} cmd]
         (cond
           (and (empty? args) (seq assigns))
-          [(list 'def
-                 (-> assigns only (get "Name") (get "Value") symbol)
-                 (-> assigns only (get "Value") unwrap-arg))]
+          [(template (def
+                       ~(-> assigns only (get "Name") (get "Value") symbol)
+                       ~(-> assigns only (get "Value") unwrap-arg)))]
           (seq args)
           (let [unwrapped-args (map unwrap-arg args)]
             (or (not-not-found (builtin unwrapped-args))
@@ -136,7 +136,7 @@
                                               "2" :err)
                                        (-> redir (get "Word") (get "Parts") only (get "Value")))
                                 56
-                                (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                                (assoc opts :in (template (slurp ~(-> redir (get "Word") (get "Parts") only (get "Value")))))
                                 59 ;; StdoutToFileDescriptor
                                 (let [target (-> redir (get "Word") unwrap-arg)]
                                   (cond
@@ -157,10 +157,9 @@
                                   (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
                             {}
                             redirs)]
-                       (apply list
-                              'shell
-                              (into (if (empty? opts) [] [opts])
-                                    unwrapped-args)))
+                       (template (shell
+                                  ~@(into (if (empty? opts) [] [opts])
+                                          unwrapped-args))))
                      (update-shell (fn [opts]
                                      (reduce (fn [opts assign]
                                                (update opts

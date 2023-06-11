@@ -1,2 +1,2 @@
-- [ ] stacktraces in test runner
+- [x] stacktraces in test runner
 - [ ] use `template` everywhere
