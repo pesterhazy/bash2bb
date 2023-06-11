@@ -55,6 +55,10 @@
   (is (= '[(shell {:in (slurp "stdin.txt")} "cat")]
          (x/ast->forms (x/bash->ast "cat < stdin.txt")))))
 
+(deftest echo-redirect-both
+  (is (= '[(shell {:out "both.txt", :err :out} "echo" "a")]
+         (x/ast->forms (x/bash->ast "echo a >& both.txt")))))
+
 (deftest echo-redirect-stdout-to-fd
   (is (= ['(shell {:out System/err} "echo" "a")]
          (x/ast->forms (x/bash->ast "echo a >&2")))))

@@ -139,15 +139,13 @@
                                         (= "1" target))
                                    (assoc opts :err 'System/out)
                                    :else
-                                   (do
-                                     (pp redir)
-                                     (throw (Exception. (str "Don't know how to translate redirect"))))))
+                                   (assoc opts :out target :err :out)))
 
                                63 ;; here-string
                                (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
                                ;; else
                                (do
-                                 (pp cmd)
+                                 (pp redir)
                                  (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
                            {}
                            redirs)]
