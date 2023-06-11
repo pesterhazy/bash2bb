@@ -104,7 +104,7 @@
   (assert (<= (count redirs) 2))
   (let [finalize
         (fn [form]
-          (if (= :binary context)
+          (if (and (= :binary context) (list? form) (= 'shell (first form)))
             (list 'zero? (list :exit (update-shell form assoc :continue true)))
             form))]
     (case type

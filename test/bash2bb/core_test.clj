@@ -116,6 +116,10 @@
   (is (= '[(or (zero? (:exit (shell {:continue true} "true"))) (shell "echo" "a"))]
          (x/ast->forms (x/bash->ast "true || echo a")))))
 
+(deftest binary-and-3
+  (is (= '[(and (and (zero? (:exit (shell {:continue true} "a"))) (shell "b")) (shell "c"))]
+         (x/ast->forms (x/bash->ast "a && b && c")))))
+
 (deftest conditional
   (is (= '[(if (zero? (:exit (shell {:continue true} "true")))
              (shell "echo" "a")
