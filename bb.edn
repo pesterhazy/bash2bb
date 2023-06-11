@@ -4,7 +4,7 @@
  {test:bb {:extra-paths ["test"]
            :extra-deps {io.github.cognitect-labs/test-runner
                         {:git/sha "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023"}}
-           :task cognitect.test-runner/-main}
+           :task runner/-main}
   integration:bb {:extra-paths ["test"]
                   :task integration/-main}}
  :bbin/bin {bash2bb {:main-opts ["-m" "bash2bb.core"]}}}
