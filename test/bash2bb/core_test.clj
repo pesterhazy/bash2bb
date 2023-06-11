@@ -190,7 +190,7 @@
          (x/ast->forms (x/bash->ast "{ false; } || echo a")))))
 
 (deftest set-builtin
-  (is (= ['(do)]
+  (is (= []
          (x/ast->forms (x/bash->ast "set -e")))))
 
 #_(deftest var-default

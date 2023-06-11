@@ -89,6 +89,13 @@
                              (pp part)
                              (throw (Exception. (str "Part Type not implemented: " (get part "Type"))))))) parts)))
 
+(defn not-not-found
+  "Like clojure.core/not-empty but uses ::not-found as sentinel"
+  [coll]
+  (if (= ::not-found coll)
+    nil
+    coll))
+
 (defn builtin [args]
   (case (first args)
     "exit"
@@ -96,8 +103,8 @@
       (assert (= 2 (count args)))
       [(template (System/exit ~(Long/parseLong (second args))))])
     "set"
-    ['(do)]
-    nil))
+    []
+    ::not-found))
 
 (defn- stmt->forms [{{type "Type", :as cmd} "Cmd",
                      redirs "Redirs"}
@@ -118,7 +125,7 @@
                  (-> assigns only (get "Value") unwrap-arg))]
           (seq args)
           (let [unwrapped-args (map unwrap-arg args)]
-            (or (not-empty (builtin unwrapped-args))
+            (or (not-not-found (builtin unwrapped-args))
                 [(-> (let [opts
                            (reduce
                             (fn [opts redir]
