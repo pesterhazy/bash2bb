@@ -94,9 +94,9 @@
     "exit"
     (do
       (assert (= 2 (count args)))
-      (template (System/exit ~(Long/parseLong (second args)))))
+      [(template (System/exit ~(Long/parseLong (second args))))])
     "set"
-    '(do)
+    ['(do)]
     nil))
 
 (defn- stmt->forms [{{type "Type", :as cmd} "Cmd",
@@ -110,16 +110,16 @@
             form))]
     (case type
       "CallExpr"
-      [(let [{args "Args", assigns "Assigns"} cmd]
-         (cond
-           (and (empty? args) (seq assigns))
-           (list 'def
+      (let [{args "Args", assigns "Assigns"} cmd]
+        (cond
+          (and (empty? args) (seq assigns))
+          [(list 'def
                  (-> assigns only (get "Name") (get "Value") symbol)
-                 (-> assigns only (get "Value") unwrap-arg))
-           (seq args)
-           (let [unwrapped-args (map unwrap-arg args)]
-             (or (builtin unwrapped-args)
-                 (-> (let [opts
+                 (-> assigns only (get "Value") unwrap-arg))]
+          (seq args)
+          (let [unwrapped-args (map unwrap-arg args)]
+            (or (not-empty (builtin unwrapped-args))
+                [(-> (let [opts
                            (reduce
                             (fn [opts redir]
                               (case (get redir "Op")
@@ -164,9 +164,9 @@
                                                                 (-> assign (get "Value") unwrap-arg)))))
                                              opts
                                              assigns)))
-                     finalize)))
-           :else
-           (throw (Exception. "Unknown CallExpr"))))]
+                     finalize)]))
+          :else
+          (throw (Exception. "Unknown CallExpr"))))
       "BinaryCmd"
       [(finalize (let [{op "Op", x "X", y "Y"} cmd]
                    (case op
