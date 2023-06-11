@@ -123,13 +123,16 @@
                            (fn [opts redir]
                              (case (get redir "Op")
                                54
-                               (assoc opts :out (-> redir (get "Word") (get "Parts") only (get "Value")))
+                               (assoc opts (case (-> redir (get "N") (get "Value"))
+                                             (nil "1") :out
+                                             "2" :err)
+                                      (-> redir (get "Word") (get "Parts") only (get "Value")))
                                56
                                (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
                                59 ;; StdoutToFileDescriptor
                                (let [target (-> redir (get "Word") unwrap-arg)]
                                  (cond
-                                   (and (nil? (get "N" redir))
+                                   (and (nil? (get redir "N"))
                                         (= "2" target))
                                    (assoc opts :out 'System/err)
                                    (and (= "2" (-> redir (get "N") (get "Value")))

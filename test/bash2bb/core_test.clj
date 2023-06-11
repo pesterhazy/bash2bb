@@ -44,8 +44,12 @@
          (x/ast->forms (x/bash->ast "echo ab | rev")))))
 
 (deftest echo-redirect-stdout
-  (is (= [(list 'shell {:out "stdout.txt"} "echo" "a")]
+  (is (= '[(shell {:out "stdout.txt"} "echo" "a")]
          (x/ast->forms (x/bash->ast "echo a > stdout.txt")))))
+
+(deftest echo-redirect-stderr
+  (is (= '[(shell {:err "stderr.txt"} "echo" "a")]
+         (x/ast->forms (x/bash->ast "echo a 2> stderr.txt")))))
 
 (deftest echo-redirect-stdin
   (is (= '[(shell {:in (slurp "stdin.txt")} "cat")]
