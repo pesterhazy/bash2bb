@@ -177,21 +177,22 @@
       [(finalize (let [{op "Op", x "X", y "Y"} cmd]
                    (case op
                      10 ;; &&
-                     (list 'and (stmt->form x {:context :binary}) (stmt->form y {}))
+                     (template (and ~(stmt->form x {:context :binary}) ~(stmt->form y {})))
                      11 ;; ||
-                     (list 'or (stmt->form x {:context :binary}) (stmt->form y {}))
+                     (template (or ~(stmt->form x {:context :binary}) ~(stmt->form y {})))
                      12
-                     (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))
+                     (update-shell (stmt->form y {}) assoc :in (template (:out ~(update-shell (stmt->form x {}) assoc :out :string))))
                      (do
                        (pp cmd)
                        (throw (Exception. (str "BinaryCmd Op not implemented: " op)))))))]
       "IfClause"
       [(finalize (if (get (get cmd "Else") "Then")
-                   (list 'if (stmt->form (only (get cmd "Cond")) {:context :binary})
-                         (do-if-many (map #(stmt->form % {}) (get cmd "Then")))
-                         (do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then"))))
-                   (list 'when (stmt->form (only (get cmd "Cond")) {:context :binary})
-                         (do-if-many (map #(stmt->form % {}) (get cmd "Then"))))))]
+                   (template
+                    (if ~(stmt->form (only (get cmd "Cond")) {:context :binary})
+                      ~(do-if-many (map #(stmt->form % {}) (get cmd "Then")))
+                      ~(do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then")))))
+                   (template (when ~(stmt->form (only (get cmd "Cond")) {:context :binary})
+                               ~(do-if-many (map #(stmt->form % {}) (get cmd "Then")))))))]
       "TestClause"
       [(case context
          (:binary :stmt)
@@ -200,9 +201,9 @@
              "BinaryTest"
              (case op
                (40 74) ;; ==
-               (list '= (unwrap-arg x) (unwrap-arg y))
+               (template (= ~(unwrap-arg x) ~(unwrap-arg y)))
                41 ;; !=
-               (list 'not= (unwrap-arg x) (unwrap-arg y))
+               (template (not= ~(unwrap-arg x) ~(unwrap-arg y)))
                (do
                  (pp cmd)
                  (throw (Exception. (str "BinaryTest Op not implemented: " op))))))))]
@@ -210,7 +211,7 @@
       [(let [[:as stmts] (-> cmd (get "Stmts"))]
          (assert (pos? (count stmts)))
          (let [forms (map #(stmt->form % {}) stmts)]
-           (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))]
+           (template (do ~@(concat (butlast forms) [(finalize (last forms))])))))]
       "DeclClause"
       [(let [arg (-> cmd (get "Args") only)]
          (assert (= "export" (-> cmd (get "Variant") (get "Value"))))
