@@ -45,6 +45,7 @@
   (first xs))
 
 (declare stmt->form)
+(declare stmt->forms)
 
 (defn concat-if-many [xs]
   (if (> (count xs) 1)
@@ -98,132 +99,135 @@
     '(do)
     nil))
 
-(defn- stmt->form [{{type "Type", :as cmd} "Cmd",
-                    redirs "Redirs"}
-                   {:keys [context] :or {context :stmt}}]
+(defn- stmt->forms [{{type "Type", :as cmd} "Cmd",
+                     redirs "Redirs"}
+                    {:keys [context] :or {context :stmt}}]
   (assert (<= (count redirs) 2))
-  (let [finalize
-        (fn [form]
-          (if (and (= :binary context) (list? form) (= 'shell (first form)))
-            (list 'zero? (list :exit (update-shell form assoc :continue true)))
-            form))]
-    (case type
-      "CallExpr"
-      (let [{args "Args", assigns "Assigns"} cmd]
-        (cond
-          (and (empty? args) (seq assigns))
-          (list 'def
-                (-> assigns only (get "Name") (get "Value") symbol)
-                (-> assigns only (get "Value") unwrap-arg))
-          (seq args)
-          (let [unwrapped-args (map unwrap-arg args)]
-            (or (builtin unwrapped-args)
-                (-> (let [opts
-                          (reduce
-                           (fn [opts redir]
-                             (case (get redir "Op")
-                               54
-                               (assoc opts (case (-> redir (get "N") (get "Value"))
-                                             (nil "1") :out
-                                             "2" :err)
-                                      (-> redir (get "Word") (get "Parts") only (get "Value")))
-                               56
-                               (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
-                               59 ;; StdoutToFileDescriptor
-                               (let [target (-> redir (get "Word") unwrap-arg)]
-                                 (cond
-                                   (and (nil? (get redir "N"))
-                                        (= "2" target))
-                                   (assoc opts :out 'System/err)
-                                   (and (= "2" (-> redir (get "N") (get "Value")))
-                                        (= "1" target))
-                                   (assoc opts :err 'System/out)
-                                   :else
-                                   (assoc opts :out target :err :out)))
+  [(let [finalize
+         (fn [form]
+           (if (and (= :binary context) (list? form) (= 'shell (first form)))
+             (list 'zero? (list :exit (update-shell form assoc :continue true)))
+             form))]
+     (case type
+       "CallExpr"
+       (let [{args "Args", assigns "Assigns"} cmd]
+         (cond
+           (and (empty? args) (seq assigns))
+           (list 'def
+                 (-> assigns only (get "Name") (get "Value") symbol)
+                 (-> assigns only (get "Value") unwrap-arg))
+           (seq args)
+           (let [unwrapped-args (map unwrap-arg args)]
+             (or (builtin unwrapped-args)
+                 (-> (let [opts
+                           (reduce
+                            (fn [opts redir]
+                              (case (get redir "Op")
+                                54
+                                (assoc opts (case (-> redir (get "N") (get "Value"))
+                                              (nil "1") :out
+                                              "2" :err)
+                                       (-> redir (get "Word") (get "Parts") only (get "Value")))
+                                56
+                                (assoc opts :in (list 'slurp (-> redir (get "Word") (get "Parts") only (get "Value"))))
+                                59 ;; StdoutToFileDescriptor
+                                (let [target (-> redir (get "Word") unwrap-arg)]
+                                  (cond
+                                    (and (nil? (get redir "N"))
+                                         (= "2" target))
+                                    (assoc opts :out 'System/err)
+                                    (and (= "2" (-> redir (get "N") (get "Value")))
+                                         (= "1" target))
+                                    (assoc opts :err 'System/out)
+                                    :else
+                                    (assoc opts :out target :err :out)))
 
-                               63 ;; here-string
-                               (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
-                               ;; else
-                               (do
-                                 (pp redir)
-                                 (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
-                           {}
-                           redirs)]
-                      (apply list
-                             'shell
-                             (into (if (empty? opts) [] [opts])
-                                   unwrapped-args)))
-                    (update-shell (fn [opts]
-                                    (reduce (fn [opts assign]
-                                              (update opts
-                                                      :extra-env
-                                                      (fn [env]
-                                                        (assoc env
-                                                               (-> assign (get "Name") (get "Value"))
-                                                               (-> assign (get "Value") unwrap-arg)))))
-                                            opts
-                                            assigns)))
-                    finalize)))
-          :else
-          (throw (Exception. "Unknown CallExpr"))))
-      "BinaryCmd"
-      (finalize (let [{op "Op", x "X", y "Y"} cmd]
-                  (case op
-                    10 ;; &&
-                    (list 'and (stmt->form x {:context :binary}) (stmt->form y {}))
-                    11 ;; ||
-                    (list 'or (stmt->form x {:context :binary}) (stmt->form y {}))
-                    12
-                    (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))
-                    (do
-                      (pp cmd)
-                      (throw (Exception. (str "BinaryCmd Op not implemented: " op)))))))
-      "IfClause"
-      (finalize (if (get (get cmd "Else") "Then")
-                  (list 'if (stmt->form (only (get cmd "Cond")) {:context :binary})
-                        (do-if-many (map #(stmt->form % {}) (get cmd "Then")))
-                        (do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then"))))
-                  (list 'when (stmt->form (only (get cmd "Cond")) {:context :binary})
-                        (do-if-many (map #(stmt->form % {}) (get cmd "Then"))))))
-      "TestClause"
-      (case context
-        (:binary :stmt)
-        (let [{{type "Type", op "Op", x "X", y "Y"} "X"} cmd]
-          (case type
-            "BinaryTest"
-            (case op
-              (40 74) ;; ==
-              (list '= (unwrap-arg x) (unwrap-arg y))
-              41 ;; !=
-              (list 'not= (unwrap-arg x) (unwrap-arg y))
-              (do
-                (pp cmd)
-                (throw (Exception. (str "BinaryTest Op not implemented: " op))))))))
-      "Block"
-      (let [[:as stmts] (-> cmd (get "Stmts"))]
-        (assert (pos? (count stmts)))
-        (let [forms (map #(stmt->form % {}) stmts)]
-          (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))
-      "DeclClause"
-      (let [arg (-> cmd (get "Args") only)]
-        (assert (= "export" (-> cmd (get "Variant") (get "Value"))))
-        (if (-> arg (get "Naked"))
-          (template (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> arg (get "Name") (get "Value")) ~(-> arg (get "Name") (get "Value") symbol)))))
-          (template
-           (do
-             (def
-               ~(-> arg (get "Name") (get "Value") symbol)
-               ~(-> arg (get "Value") unwrap-arg))
-             (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> arg (get "Name") (get "Value")) ~(-> arg (get "Name") (get "Value") symbol))))))))
-      ;; else
-      (do
-        (pp cmd)
-        (throw (ex-info (str "Cmd type not implemented: " type) {}))))))
+                                63 ;; here-string
+                                (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
+                                ;; else
+                                (do
+                                  (pp redir)
+                                  (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
+                            {}
+                            redirs)]
+                       (apply list
+                              'shell
+                              (into (if (empty? opts) [] [opts])
+                                    unwrapped-args)))
+                     (update-shell (fn [opts]
+                                     (reduce (fn [opts assign]
+                                               (update opts
+                                                       :extra-env
+                                                       (fn [env]
+                                                         (assoc env
+                                                                (-> assign (get "Name") (get "Value"))
+                                                                (-> assign (get "Value") unwrap-arg)))))
+                                             opts
+                                             assigns)))
+                     finalize)))
+           :else
+           (throw (Exception. "Unknown CallExpr"))))
+       "BinaryCmd"
+       (finalize (let [{op "Op", x "X", y "Y"} cmd]
+                   (case op
+                     10 ;; &&
+                     (list 'and (stmt->form x {:context :binary}) (stmt->form y {}))
+                     11 ;; ||
+                     (list 'or (stmt->form x {:context :binary}) (stmt->form y {}))
+                     12
+                     (update-shell (stmt->form y {}) assoc :in (list :out (update-shell (stmt->form x {}) assoc :out :string)))
+                     (do
+                       (pp cmd)
+                       (throw (Exception. (str "BinaryCmd Op not implemented: " op)))))))
+       "IfClause"
+       (finalize (if (get (get cmd "Else") "Then")
+                   (list 'if (stmt->form (only (get cmd "Cond")) {:context :binary})
+                         (do-if-many (map #(stmt->form % {}) (get cmd "Then")))
+                         (do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then"))))
+                   (list 'when (stmt->form (only (get cmd "Cond")) {:context :binary})
+                         (do-if-many (map #(stmt->form % {}) (get cmd "Then"))))))
+       "TestClause"
+       (case context
+         (:binary :stmt)
+         (let [{{type "Type", op "Op", x "X", y "Y"} "X"} cmd]
+           (case type
+             "BinaryTest"
+             (case op
+               (40 74) ;; ==
+               (list '= (unwrap-arg x) (unwrap-arg y))
+               41 ;; !=
+               (list 'not= (unwrap-arg x) (unwrap-arg y))
+               (do
+                 (pp cmd)
+                 (throw (Exception. (str "BinaryTest Op not implemented: " op))))))))
+       "Block"
+       (let [[:as stmts] (-> cmd (get "Stmts"))]
+         (assert (pos? (count stmts)))
+         (let [forms (map #(stmt->form % {}) stmts)]
+           (apply list 'do (concat (butlast forms) [(finalize (last forms))]))))
+       "DeclClause"
+       (let [arg (-> cmd (get "Args") only)]
+         (assert (= "export" (-> cmd (get "Variant") (get "Value"))))
+         (if (-> arg (get "Naked"))
+           (template (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> arg (get "Name") (get "Value")) ~(-> arg (get "Name") (get "Value") symbol)))))
+           (template
+            (do
+              (def
+                ~(-> arg (get "Name") (get "Value") symbol)
+                ~(-> arg (get "Value") unwrap-arg))
+              (alter-var-root #'babashka.process/*defaults* (fn [m] (update m :extra-env assoc ~(-> arg (get "Name") (get "Value")) ~(-> arg (get "Name") (get "Value") symbol))))))))
+       ;; else
+       (do
+         (pp cmd)
+         (throw (ex-info (str "Cmd type not implemented: " type) {})))))])
+
+(defn- stmt->form [stmt opts]
+  (only (stmt->forms stmt opts)))
 
 (defn ast->forms+state
   [ast]
   (binding [*!state* (atom {})]
-    [(mapv #(stmt->form % {}) (get ast "Stmts")) @*!state*]))
+    [(vec (mapcat #(stmt->forms % {}) (get ast "Stmts"))) @*!state*]))
 
 (defn ast->forms
   [ast]
