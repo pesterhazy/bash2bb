@@ -66,7 +66,7 @@
                            (let [stmts (-> part (get "Stmts"))]
                              (->> stmts
                                   (map (fn [stmt]
-                                         (list :out (update-shell (stmt->form stmt {}) assoc :out :string))))
+                                         (template (:out ~(update-shell (stmt->form stmt {}) assoc :out :string)))))
                                   concat-if-many))
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
@@ -242,7 +242,7 @@
 
 (defn declarations [state]
   (->> (:vars state)
-       (map (fn [sym] (list 'def sym (list 'System/getenv (name sym)))))
+       (map (fn [sym] (template (def ~sym (System/getenv ~(name sym))))))
        vec))
 
 (defn bash->ast [bash]
