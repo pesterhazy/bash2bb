@@ -1,2 +1,1 @@
-- [x] stacktraces in test runner
-- [ ] use `template` everywhere
+- [ ] remove stmt->form (singular)

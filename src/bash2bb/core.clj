@@ -210,8 +210,10 @@
       "Block"
       [(let [[:as stmts] (-> cmd (get "Stmts"))]
          (assert (pos? (count stmts)))
-         (let [forms (map #(stmt->form % {}) stmts)]
-           (template (do ~@(concat (butlast forms) [(finalize (last forms))])))))]
+         (let [forms (mapcat #(stmt->forms % {}) stmts)]
+           (if (empty? forms)
+             '(do)
+             (template (do ~@(concat (butlast forms) [(finalize (last forms))]))))))]
       "DeclClause"
       [(let [arg (-> cmd (get "Args") only)]
          (assert (= "export" (-> cmd (get "Variant") (get "Value"))))
