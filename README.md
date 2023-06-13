@@ -15,6 +15,7 @@ tar -czf $OF /home/linuxconfig
 (shell "tar" "-czf" OF "/home/linuxconfig")
 ```
 
+
 ## About
 
 `bash2bb` generates a [babashka](https://babashka.org/) program that's roughly equivalent to an input bash script. This can help in a few ways:
@@ -27,6 +28,8 @@ tar -czf $OF /home/linuxconfig
 > While `bash2bb` makes an effort to emulate various bash features, the result is likely to contain inaccuracies. Don't blindly trust the output – always review the generated script!
 
 *This is an early alpha release. Many bash language constructs aren't implemented yet.*
+
+See [CHANGELOG.md](CHANGELOG.md) for the release history.
 
 ## Installation
 
