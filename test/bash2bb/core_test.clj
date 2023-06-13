@@ -201,13 +201,13 @@
   (is (= '[(do)]
          (x/ast->forms (x/bash->ast "{ set -e; }")))))
 
-(deftest echo
-  (is (= '[(println "hi")]
-         (x/ast->forms (x/bash->ast "echo hi")))))
+#_(deftest echo
+    (is (= '[(println "hi")]
+           (x/ast->forms (x/bash->ast "echo hi")))))
 
-(deftest echo-n
-  (is (= '[(print "hi")]
-         (x/ast->forms (x/bash->ast "echo -n hi")))))
+#_(deftest echo-n
+    (is (= '[(print "hi")]
+           (x/ast->forms (x/bash->ast "echo -n hi")))))
 
 #_(deftest var-default
     (is (= [:???]

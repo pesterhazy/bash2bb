@@ -104,10 +104,10 @@
       [(template (System/exit ~(Long/parseLong (first args))))])
     "set"
     []
-    "echo"
-    (if (= "-n" (first args))
-      [(template (print ~@(rest args)))]
-      [(template (println ~@args))])
+    ; "echo"
+    ; (if (= "-n" (first args))
+    ;   [(template (print ~@(rest args)))]
+    ;   [(template (println ~@args))])
     ::not-found))
 
 (defn- stmt->forms [{{type "Type", :as cmd} "Cmd",
