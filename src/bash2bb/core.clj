@@ -96,16 +96,18 @@
     nil
     coll))
 
-(defn builtin [args]
-  (case (first args)
+(defn builtin [[cmd & args]]
+  (case cmd
     "exit"
     (do
-      (assert (= 2 (count args)))
-      [(template (System/exit ~(Long/parseLong (second args))))])
+      (assert (= 1 (count args)))
+      [(template (System/exit ~(Long/parseLong (first args))))])
     "set"
     []
     "echo"
-    [(template (println ~@(rest args)))]
+    (if (= "-n" (first args))
+      [(template (print ~@(rest args)))]
+      [(template (println ~@args))])
     ::not-found))
 
 (defn- stmt->forms [{{type "Type", :as cmd} "Cmd",
