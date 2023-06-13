@@ -44,7 +44,6 @@
   (assert (= 1 (count xs)))
   (first xs))
 
-(declare stmt->form)
 (declare stmt->forms)
 
 (defn concat-if-many [xs]
@@ -178,22 +177,22 @@
       [(finalize (let [{op "Op", x "X", y "Y"} cmd]
                    (case op
                      10 ;; &&
-                     (template (and ~(stmt->form x {:context :binary}) ~(stmt->form y {})))
+                     (template (and ~(do-if-many (stmt->forms x {:context :binary})) ~(do-if-many (stmt->forms y {}))))
                      11 ;; ||
-                     (template (or ~(stmt->form x {:context :binary}) ~(stmt->form y {})))
-                     12
-                     (update-shell (stmt->form y {}) assoc :in (template (:out ~(update-shell (stmt->form x {}) assoc :out :string))))
+                     (template (or ~(do-if-many (stmt->forms x {:context :binary})) ~(do-if-many (stmt->forms y {}))))
+                     12 ;; |
+                     (update-shell (do-if-many (stmt->forms y {})) assoc :in (template (:out ~(update-shell (do-if-many (stmt->forms x {})) assoc :out :string))))
                      (do
                        (pp cmd)
                        (throw (Exception. (str "BinaryCmd Op not implemented: " op)))))))]
       "IfClause"
       [(finalize (if (get (get cmd "Else") "Then")
                    (template
-                    (if ~(stmt->form (only (get cmd "Cond")) {:context :binary})
-                      ~(do-if-many (map #(stmt->form % {}) (get cmd "Then")))
-                      ~(do-if-many (map #(stmt->form % {}) (get (get cmd "Else") "Then")))))
-                   (template (when ~(stmt->form (only (get cmd "Cond")) {:context :binary})
-                               ~(do-if-many (map #(stmt->form % {}) (get cmd "Then")))))))]
+                    (if ~(do-if-many (stmt->forms (only (get cmd "Cond")) {:context :binary}))
+                      ~(do-if-many (mapcat #(stmt->forms % {}) (get cmd "Then")))
+                      ~(do-if-many (mapcat #(stmt->forms % {}) (get (get cmd "Else") "Then")))))
+                   (template (when ~(do-if-many (stmt->forms (only (get cmd "Cond")) {:context :binary}))
+                               ~(do-if-many (mapcat #(stmt->forms % {}) (get cmd "Then")))))))]
       "TestClause"
       [(case context
          (:binary :stmt)
@@ -230,9 +229,6 @@
       [(do
          (pp cmd)
          (throw (ex-info (str "Cmd type not implemented: " type) {})))])))
-
-(defn- stmt->form [stmt opts]
-  (only (stmt->forms stmt opts)))
 
 (defn ast->forms+state
   [ast]
