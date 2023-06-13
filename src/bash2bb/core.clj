@@ -65,8 +65,9 @@
                            "CmdSubst"
                            (let [stmts (-> part (get "Stmts"))]
                              (->> stmts
-                                  (map (fn [stmt]
-                                         (template (:out ~(update-shell (stmt->form stmt {}) assoc :out :string)))))
+                                  (mapcat #(stmt->forms % {}))
+                                  (map (fn [form]
+                                         (template (:out ~(update-shell form assoc :out :string)))))
                                   concat-if-many))
                            "ParamExp"
                            (let [var-name (-> part (get "Param") (get "Value"))]
