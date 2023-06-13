@@ -88,6 +88,10 @@
   (is (= '[(shell {:in "abc"} "cat")]
          (x/ast->forms (x/bash->ast "cat <<< abc")))))
 
+(deftest here-doc
+  (is (= '[(shell {:in "hello\nworld\n"} "cat")]
+         (x/ast->forms (x/bash->ast "cat <<END\nhello\nworld\nEND")))))
+
 (deftest param-exp
   (is (= '[(shell "echo" VAR)]
          (x/ast->forms (x/bash->ast "echo $VAR")))))

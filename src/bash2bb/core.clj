@@ -149,12 +149,14 @@
                                     :else
                                     (assoc opts :out target :err :out)))
 
+                                61 ;; here-doc
+                                (assoc opts :in (-> redir (get "Hdoc") (get "Parts") only (get "Value")))
                                 63 ;; here-string
                                 (assoc opts :in (-> redir (get "Word") (get "Parts") only (get "Value")))
                                 ;; else
                                 (do
                                   (pp redir)
-                                  (throw (Exception. (str "Redir Op not implemented: " (get redir "op")))))))
+                                  (throw (Exception. (str "Redir Op not implemented: " (get redir "Op")))))))
                             {}
                             redirs)]
                        (template (shell
