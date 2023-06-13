@@ -201,6 +201,10 @@
   (is (= '[(do)]
          (x/ast->forms (x/bash->ast "{ set -e; }")))))
 
+(deftest echo-builtin
+  (is (= '[(println "hi")]
+         (x/ast->forms (x/bash->ast "echo hi")))))
+
 #_(deftest var-default
     (is (= [:???]
            (x/ast->forms (x/bash->ast "cmd ${1-mydefault}")))))
