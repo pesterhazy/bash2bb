@@ -23,20 +23,20 @@
          (x/ast->forms (x/bash->ast "")))))
 
 (deftest cmd-one
-  (is (= [(list 'shell "cmd" "one")]
+  (is (= ['(shell "cmd" "one")]
          (x/ast->forms (x/bash->ast "cmd one")))))
 
 (deftest cmd-two
-  (is (= [(list 'shell "cmd" "one")
-          (list 'shell "cmd" "two")]
+  (is (= ['(shell "cmd" "one")
+          '(shell "cmd" "two")]
          (x/ast->forms (x/bash->ast "cmd one\ncmd two")))))
 
 (deftest cmd-double-quotes
-  (is (= [(list 'shell "cmd" "a b")]
+  (is (= ['(shell "cmd" "a b")]
          (x/ast->forms (x/bash->ast "cmd \"a b\"")))))
 
 (deftest cmd-single-quotes
-  (is (= [(list 'shell "cmd" "a b")]
+  (is (= ['(shell "cmd" "a b")]
          (x/ast->forms (x/bash->ast "cmd 'a b'")))))
 
 (deftest cmd-pipe
