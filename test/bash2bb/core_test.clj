@@ -92,7 +92,7 @@
   (is (= '[(shell {:in "hello\nworld\n"} "cat")]
          (x/ast->forms (x/bash->ast "cat <<END\nhello\nworld\nEND")))))
 
-(deftest param-exp
+(deftest param-expansion
   (is (= '[(shell "cmd" VAR)]
          (x/ast->forms (x/bash->ast "cmd $VAR")))))
 

@@ -81,6 +81,8 @@
                                  (template (nth *command-line-args* ~(dec idx))))
                                (= "#" var-name)
                                '(dec (count *command-line-args*))
+                               (= "@" var-name)
+                               (throw (Exception. "Not implemented: $@"))
                                :else
                                (do
                                  (swap-state! update :vars (fn [vars] (conj (or vars #{}) (symbol var-name))))
